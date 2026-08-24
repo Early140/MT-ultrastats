@@ -1,0 +1,5447 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title> MT Dashboard PRO - Eficiencia y Plays Básquet</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <style>
+    :root{
+      --bg:#071827;
+      --card:#10263a;
+      --card2:#0c2032;
+      --accent:#00d4ff;
+      --accent2:#ff1744;
+      --text:#f4f7fb;
+      --muted:#a9b8c8;
+      --line:#24435d;
+      --good:#23c483;
+      --warn:#ffd166;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      font-family:Arial, Helvetica, sans-serif;
+      background:linear-gradient(135deg,#061321,#0b2034 55%,#071827);
+      color:var(--text);
+    }
+
+    header{
+      padding:28px 36px;
+      border-bottom:1px solid var(--line);
+      background:rgba(5,18,31,.8);
+      position:sticky;
+      top:0;
+      z-index:10;
+      backdrop-filter: blur(8px);
+    }
+
+    h1{
+      margin:0;
+      font-size:30px;
+      letter-spacing:.3px;
+      color:#fff;
+    }
+
+    .subtitle{
+      margin-top:8px;
+      color:var(--muted);
+      font-size:15px;
+    }
+
+    main{
+      max-width:1280px;
+      margin:0 auto;
+      padding:28px;
+    }
+
+    .upload-box{
+      border:2px dashed var(--accent);
+      background:rgba(0,212,255,.08);
+      padding:26px;
+      border-radius:18px;
+      text-align:center;
+      margin-bottom:22px;
+    }
+
+    .upload-box input{
+      margin-top:14px;
+      padding:12px;
+      border-radius:10px;
+      background:#fff;
+      color:#000;
+      width:min(520px,100%);
+    }
+
+    .actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      justify-content:center;
+      margin-top:16px;
+    }
+
+    button, select{
+      border:0;
+      border-radius:12px;
+      padding:11px 16px;
+      cursor:pointer;
+      font-weight:bold;
+      font-size:14px;
+    }
+
+    button{
+      background:var(--accent);
+      color:#00111d;
+    }
+
+    button.secondary{
+      background:#1d3850;
+      color:#fff;
+      border:1px solid #315b78;
+    }
+
+    select{
+      background:#fff;
+      color:#111;
+      min-width:260px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:16px;
+      margin-bottom:22px;
+    }
+
+    .card{
+      background:linear-gradient(180deg,var(--card),var(--card2));
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:18px;
+      box-shadow:0 12px 30px rgba(0,0,0,.22);
+    }
+
+    .metric-title{
+      color:var(--muted);
+      font-size:13px;
+      text-transform:uppercase;
+      letter-spacing:.8px;
+    }
+
+    .metric-value{
+      margin-top:8px;
+      font-size:30px;
+      font-weight:900;
+      color:#fff;
+    }
+
+    .metric-note{
+      margin-top:6px;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .section-title{
+      margin:28px 0 14px;
+      font-size:22px;
+    }
+
+    .charts{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:18px;
+    }
+
+    canvas{
+      width:100% !important;
+      height:360px !important;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      overflow:hidden;
+      border-radius:14px;
+      font-size:13px;
+    }
+
+    th,td{
+      padding:10px 9px;
+      border-bottom:1px solid var(--line);
+      text-align:center;
+      white-space:nowrap;
+    }
+
+    th{
+      background:#061321;
+      color:var(--accent);
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.5px;
+      position:sticky;
+      top:0;
+    }
+
+    td:first-child, th:first-child{
+      text-align:left;
+      white-space:normal;
+      min-width:220px;
+    }
+
+    tbody tr:hover{
+      background:rgba(0,212,255,.08);
+    }
+
+    .table-wrap{
+      overflow:auto;
+      max-height:560px;
+      border:1px solid var(--line);
+      border-radius:16px;
+    }
+
+    .status{
+      margin-top:12px;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.5;
+    }
+
+    .pill{
+      display:inline-block;
+      padding:4px 8px;
+      border-radius:999px;
+      background:#17364f;
+      color:#dcefff;
+      font-size:12px;
+      margin:2px;
+    }
+
+    .ok{color:var(--good)}
+    .warn{color:var(--warn)}
+
+
+
+    .comparison-grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:16px;
+      margin-bottom:22px;
+    }
+
+    .split-view{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:18px;
+      align-items:start;
+    }
+
+    .player-analysis{
+      display:grid;
+      grid-template-columns:320px 1fr;
+      gap:18px;
+      align-items:start;
+      margin-bottom:22px;
+    }
+
+    .player-panel select{
+      width:100%;
+      margin-top:10px;
+    }
+
+    .mini-table{
+      max-height:420px;
+    }
+
+    .badge-positive{color:var(--good);font-weight:900}
+    .badge-negative{color:var(--accent2);font-weight:900}
+
+    @media(max-width:1000px){
+      .comparison-grid{grid-template-columns:1fr}
+      .split-view{grid-template-columns:1fr}
+      .player-analysis{grid-template-columns:1fr}
+    }
+
+    @media(max-width:1000px){
+      .grid{grid-template-columns:repeat(2,1fr)}
+      .charts{grid-template-columns:1fr}
+    }
+
+    @media(max-width:620px){
+      header{padding:22px}
+      main{padding:18px}
+      .grid{grid-template-columns:1fr}
+      h1{font-size:24px}
+    }
+  
+
+    /* ===== Diseño MT PRO con ventanas ===== */
+    body{
+      background:
+        radial-gradient(circle at 12% 8%, rgba(0,212,255,.12), transparent 28%),
+        radial-gradient(circle at 80% 0%, rgba(0,212,255,.08), transparent 32%),
+        linear-gradient(135deg,#020913,#061321 48%,#071827);
+    }
+
+    .hero-header{
+      padding:18px 28px 10px;
+      border-bottom:none;
+      background:linear-gradient(180deg,rgba(2,9,19,.96),rgba(2,9,19,.75));
+      position:relative;
+      overflow:hidden;
+    }
+
+    .hero-header:after{
+      content:"";
+      position:absolute;
+      left:0; right:0; bottom:0;
+      height:1px;
+      background:linear-gradient(90deg,transparent,var(--accent),transparent);
+    }
+
+    .brand-wrap{
+      max-width:1280px;
+      margin:0 auto;
+      display:flex;
+      align-items:center;
+      gap:18px;
+    }
+
+    .mt-logo{
+      width:120px;
+      height:132px;
+      object-fit:contain;
+      filter:drop-shadow(0 12px 20px rgba(0,0,0,.5));
+      flex:0 0 auto;
+    }
+
+    .brand-text h1{
+      font-size:44px;
+      line-height:1;
+      letter-spacing:.5px;
+      text-transform:uppercase;
+      font-weight:900;
+      font-style:italic;
+      text-shadow:0 8px 28px rgba(0,0,0,.55);
+    }
+
+    .mt-word{color:#fff;}
+    .pro-word{color:var(--accent);}
+
+    main{
+      max-width:1500px;
+      padding:18px 28px 28px;
+    }
+
+    .top-dashboard{
+      display:grid;
+      grid-template-columns:minmax(420px, 1.1fr) minmax(360px, .9fr);
+      gap:18px;
+      align-items:stretch;
+      margin-bottom:18px;
+    }
+
+    .top-dashboard .upload-box{
+      margin-bottom:0;
+      min-height:100%;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      border-style:dashed;
+      box-shadow:0 0 0 1px rgba(0,212,255,.18) inset, 0 18px 40px rgba(0,0,0,.28);
+    }
+
+    .top-dashboard .grid{
+      grid-template-columns:repeat(2,1fr);
+      gap:14px;
+      margin-bottom:0;
+    }
+
+    .card, .upload-box{
+      background:linear-gradient(180deg,rgba(16,38,58,.92),rgba(8,24,39,.92));
+      border:1px solid rgba(0,212,255,.22);
+      box-shadow:0 12px 34px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.035);
+    }
+
+    .card h3, .upload-box h2, .section-title{
+      color:var(--accent);
+      text-transform:uppercase;
+      letter-spacing:.5px;
+    }
+
+    .section-title{
+      text-align:center;
+      margin-top:26px;
+    }
+
+    .metric-value{
+      font-size:34px;
+      text-shadow:0 8px 24px rgba(0,0,0,.45);
+    }
+
+    .comparison-grid{
+      grid-template-columns:1.15fr .85fr .85fr;
+      align-items:stretch;
+    }
+
+    .player-analysis{
+      grid-template-columns:.85fr 1.15fr;
+      align-items:stretch;
+    }
+
+    .split-view{
+      grid-template-columns:1fr;
+      align-items:start;
+    }
+
+    .table-wrap{
+      background:rgba(4,15,26,.35);
+    }
+
+    th{
+      background:rgba(2,9,19,.88);
+    }
+
+    td, th{
+      border-color:rgba(0,212,255,.12);
+    }
+
+    select, input[type="file"]{
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
+    }
+
+    button{
+      box-shadow:0 8px 18px rgba(0,212,255,.16);
+    }
+
+    button.secondary{
+      box-shadow:none;
+    }
+
+    @media(max-width:1050px){
+      .top-dashboard{grid-template-columns:1fr;}
+      .top-dashboard .grid{grid-template-columns:repeat(2,1fr);}
+      .comparison-grid,.player-analysis,.split-view{grid-template-columns:1fr;}
+      .brand-text h1{font-size:36px;}
+      .mt-logo{width:94px;height:106px;}
+    }
+
+    @media(max-width:620px){
+      .brand-wrap{align-items:center;gap:10px;}
+      .brand-text h1{font-size:27px;}
+      .mt-logo{width:76px;height:86px;}
+      main{padding:14px;}
+      .top-dashboard .grid{grid-template-columns:1fr;}
+      .comparison-grid,.player-analysis,.split-view{grid-template-columns:1fr;}
+      canvas{height:300px !important;}
+    }
+
+  
+
+    .player-compare-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:18px;
+      align-items:stretch;
+      margin-bottom:22px;
+    }
+
+    .player-compare-grid canvas{
+      margin-top:12px;
+      height:300px !important;
+    }
+
+    .player-stat-box{
+      margin-top:12px;
+      padding:12px;
+      border:1px solid rgba(0,212,255,.18);
+      border-radius:12px;
+      background:rgba(2,9,19,.28);
+      line-height:1.55;
+    }
+
+    .player-stat-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:6px 14px;
+      margin-top:8px;
+      font-size:13px;
+    }
+
+    .player-stat-grid span{
+      color:var(--muted);
+    }
+
+    @media(max-width:1000px){
+      .player-compare-grid{grid-template-columns:1fr;}
+    }
+
+  </style>
+
+<style>
+/* ============================================================
+   MEJORA ESTÉTICA GENERAL DE VENTANAS SUPERIORES
+   ============================================================ */
+
+main{
+  max-width:1680px !important;
+}
+
+.top-dashboard{
+  grid-template-columns:1.15fr .95fr !important;
+  gap:22px !important;
+  align-items:stretch !important;
+}
+
+.upload-box{
+  min-height:500px !important;
+  padding:34px 38px !important;
+  border-radius:24px !important;
+  border:1px solid rgba(0,212,255,.35) !important;
+  background:
+    radial-gradient(circle at 15% 15%, rgba(0,212,255,.12), transparent 32%),
+    linear-gradient(180deg,rgba(16,38,58,.96),rgba(6,22,37,.96)) !important;
+  box-shadow:
+    0 18px 46px rgba(0,0,0,.38),
+    inset 0 1px 0 rgba(255,255,255,.05),
+    0 0 0 1px rgba(0,212,255,.08) !important;
+  display:flex !important;
+  flex-direction:column !important;
+  justify-content:center !important;
+  align-items:center !important;
+  text-align:center !important;
+}
+
+.upload-box h2{
+  font-size:30px !important;
+  margin:0 0 18px !important;
+  letter-spacing:.8px !important;
+  text-shadow:0 0 18px rgba(0,212,255,.24);
+}
+
+.upload-box p{
+  max-width:760px !important;
+  margin:0 auto 22px !important;
+  line-height:1.35 !important;
+}
+
+.upload-box input[type="file"]{
+  width:min(640px,100%) !important;
+  padding:14px !important;
+  border-radius:14px !important;
+  background:#fff !important;
+  color:#111 !important;
+  border:2px solid rgba(255,255,255,.92) !important;
+  box-shadow:0 8px 22px rgba(0,0,0,.24) !important;
+}
+
+.actions{
+  width:100% !important;
+  max-width:760px !important;
+  display:grid !important;
+  grid-template-columns:repeat(4,minmax(130px,1fr)) !important;
+  gap:12px !important;
+  align-items:end !important;
+  justify-content:center !important;
+  margin-top:18px !important;
+}
+
+.date-filter-label{
+  text-align:left !important;
+  color:#b8c9da !important;
+  font-size:12px !important;
+  letter-spacing:.2px !important;
+  width:100% !important;
+}
+
+.date-filter-label input{
+  width:100% !important;
+  height:48px !important;
+  border-radius:14px !important;
+  padding:10px 12px !important;
+  border:2px solid rgba(255,255,255,.92) !important;
+  background:#fff !important;
+  color:#111 !important;
+  font-weight:800 !important;
+}
+
+#teamSelect{
+  width:100% !important;
+  min-width:0 !important;
+  height:82px !important;
+  border-radius:16px !important;
+  border:2px solid rgba(255,255,255,.92) !important;
+  background:#fff !important;
+  color:#111 !important;
+  font-weight:900 !important;
+  font-size:15px !important;
+  padding:0 20px !important;
+  align-self:end !important;
+}
+
+.actions button{
+  height:82px !important;
+  border-radius:16px !important;
+  font-size:15px !important;
+  font-weight:900 !important;
+  transition:transform .12s ease, filter .12s ease !important;
+}
+
+.actions button:hover{
+  transform:translateY(-2px);
+  filter:brightness(1.06);
+}
+
+.actions button.secondary{
+  height:50px !important;
+  grid-column:auto !important;
+  background:linear-gradient(180deg,#24455f,#17334b) !important;
+  border:1px solid rgba(0,212,255,.25) !important;
+}
+
+#status,
+#ocr-note-mt{
+  max-width:760px !important;
+  margin:18px auto 0 !important;
+  line-height:1.45 !important;
+}
+
+.top-dashboard .grid{
+  display:grid !important;
+  grid-template-columns:1fr 1fr !important;
+  gap:16px !important;
+  height:100% !important;
+}
+
+.top-dashboard .card{
+  min-height:238px !important;
+  border-radius:20px !important;
+  padding:24px 26px !important;
+  display:flex !important;
+  flex-direction:column !important;
+  justify-content:flex-start !important;
+  background:
+    linear-gradient(180deg,rgba(18,43,64,.96),rgba(7,23,38,.96)) !important;
+  border:1px solid rgba(0,212,255,.25) !important;
+  box-shadow:
+    0 18px 42px rgba(0,0,0,.32),
+    inset 0 1px 0 rgba(255,255,255,.04) !important;
+}
+
+.metric-title{
+  font-size:15px !important;
+  color:#d8e8f7 !important;
+  letter-spacing:.7px !important;
+  margin-bottom:12px !important;
+}
+
+.metric-value{
+  font-size:42px !important;
+  line-height:1 !important;
+  margin:0 0 12px !important;
+  color:#fff !important;
+  text-shadow:0 8px 24px rgba(0,0,0,.45) !important;
+}
+
+.metric-note{
+  font-size:15px !important;
+  color:#c7d9ea !important;
+  margin-top:2px !important;
+}
+
+.section-title{
+  margin-top:34px !important;
+  margin-bottom:18px !important;
+  font-size:26px !important;
+}
+
+/* Ajuste para que Exportar/Limpiar queden centrados debajo */
+.actions button.secondary:nth-of-type(2){
+  grid-column:2 / 3;
+}
+.actions button.secondary:nth-of-type(3){
+  grid-column:3 / 4;
+}
+
+@media(max-width:1150px){
+  .top-dashboard{
+    grid-template-columns:1fr !important;
+  }
+  .upload-box{
+    min-height:auto !important;
+  }
+}
+
+@media(max-width:820px){
+  .actions{
+    grid-template-columns:1fr 1fr !important;
+  }
+  #teamSelect,
+  .actions button{
+    height:56px !important;
+  }
+  .actions button.secondary:nth-of-type(2),
+  .actions button.secondary:nth-of-type(3){
+    grid-column:auto;
+  }
+  .top-dashboard .grid{
+    grid-template-columns:1fr !important;
+  }
+}
+
+@media(max-width:540px){
+  .actions{
+    grid-template-columns:1fr !important;
+  }
+  .upload-box h2{
+    font-size:24px !important;
+  }
+}
+/* ===================== FIN MEJORA ESTÉTICA ===================== */
+</style>
+
+
+<style>
+/* ===== PROMEDIOS LOCAL / VISITANTE / TODOS ===== */
+.comparison-grid{
+  grid-template-columns:1.15fr .85fr .85fr !important;
+}
+.mt-avg-card{
+  grid-column:1 / -1;
+  min-width:0;
+}
+.mt-avg-controls{
+  display:grid;
+  grid-template-columns:minmax(240px,1fr) minmax(220px,.55fr);
+  gap:14px;
+  margin:14px 0 10px;
+}
+.mt-avg-controls label{
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+}
+.mt-avg-controls select{
+  width:100%;
+  min-width:0;
+}
+.mt-avg-table-wrap{
+  max-height:520px;
+  margin-top:12px;
+}
+#avgVenueTable th:first-child,
+#avgVenueTable td:first-child{
+  min-width:230px;
+  position:sticky;
+  left:0;
+  z-index:2;
+}
+#avgVenueTable th:first-child{
+  z-index:4;
+  background:#061321;
+}
+#avgVenueTable td:first-child{
+  background:#0b2032;
+}
+#avgVenueTable tr.mt-team-average td{
+  font-weight:900;
+  color:#fff;
+  background:rgba(0,212,255,.12);
+  border-bottom:2px solid rgba(0,212,255,.35);
+}
+#avgVenueTable tr.mt-team-average td:first-child{
+  color:var(--accent);
+  background:#0d2b40;
+}
+#avgVenueTable .mt-player-name{
+  padding-left:22px;
+}
+@media(max-width:1000px){
+  .comparison-grid{grid-template-columns:1fr !important;}
+  .mt-avg-card{grid-column:auto;}
+}
+@media(max-width:650px){
+  .mt-avg-controls{grid-template-columns:1fr;}
+}
+</style>
+
+
+<style id="mt-workspace-nav-styles">
+/* ===== MT PRO: NAVEGACIÓN POR VENTANAS + SCOUTING ===== */
+.brand-wrap{position:relative;}
+.mt-view-nav{
+  margin-left:auto;
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  gap:8px;
+  max-width:760px;
+  align-self:center;
+}
+.mt-view-btn{
+  appearance:none;
+  border:1px solid rgba(0,212,255,.26);
+  background:rgba(13,39,60,.9);
+  color:#d9e9f7;
+  padding:10px 13px;
+  border-radius:12px;
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:.35px;
+  line-height:1.15;
+  box-shadow:none;
+  transition:.15s ease;
+}
+.mt-view-btn:hover{
+  transform:translateY(-1px);
+  border-color:rgba(0,212,255,.65);
+  color:#fff;
+}
+.mt-view-btn.active{
+  background:linear-gradient(180deg,#15d8f5,#00bfe6);
+  color:#00111d;
+  border-color:#36e4ff;
+  box-shadow:0 8px 22px rgba(0,212,255,.18);
+}
+.mt-view-block[hidden]{display:none !important;}
+
+#mtScoutingSection{margin-top:8px;}
+.mt-scout-controls{
+  display:grid;
+  grid-template-columns:minmax(240px,1.4fr) repeat(2,minmax(170px,.7fr)) minmax(170px,.7fr);
+  gap:12px;
+  align-items:end;
+  margin:14px 0 18px;
+}
+.mt-scout-controls label{
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+  color:#c8d9e9;
+  font-size:12px;
+  font-weight:800;
+}
+.mt-scout-controls select,
+.mt-scout-controls button{
+  width:100%;
+  min-width:0;
+  height:48px;
+}
+.mt-scout-summary{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:14px;
+  margin:18px 0;
+}
+.mt-scout-metric{
+  border:1px solid rgba(0,212,255,.20);
+  background:rgba(3,17,29,.52);
+  border-radius:16px;
+  padding:16px;
+}
+.mt-scout-metric .k{
+  color:#9fb3c6;
+  font-size:11px;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+}
+.mt-scout-metric .v{
+  margin-top:7px;
+  font-size:27px;
+  font-weight:900;
+  color:#fff;
+}
+.mt-scout-grid{
+  display:grid;
+  grid-template-columns:1.05fr .95fr;
+  gap:18px;
+  align-items:start;
+}
+.mt-scout-panel{
+  border:1px solid rgba(0,212,255,.18);
+  background:rgba(2,9,19,.28);
+  border-radius:16px;
+  padding:16px;
+}
+.mt-scout-player{
+  display:grid;
+  grid-template-columns:58px minmax(190px,1.2fr) repeat(6,minmax(70px,.55fr));
+  gap:8px;
+  align-items:center;
+  padding:11px 10px;
+  border-bottom:1px solid rgba(0,212,255,.10);
+  font-size:12px;
+}
+.mt-scout-player:last-child{border-bottom:none;}
+.mt-scout-rank{
+  width:42px;height:42px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:900;color:#fff;background:#17364f;
+}
+.mt-scout-name{font-size:14px;font-weight:900;color:#fff;}
+.mt-scout-sub{font-size:11px;color:#9fb3c6;margin-top:3px;}
+.mt-priority{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  margin-top:6px;
+  padding:4px 8px;
+  border-radius:999px;
+  font-size:10px;
+  font-weight:900;
+}
+.mt-priority.high{background:rgba(255,23,68,.16);color:#ff6b86;border:1px solid rgba(255,23,68,.35);}
+.mt-priority.mid{background:rgba(255,209,102,.13);color:#ffd166;border:1px solid rgba(255,209,102,.32);}
+.mt-priority.low{background:rgba(35,196,131,.12);color:#46d89c;border:1px solid rgba(35,196,131,.32);}
+.mt-scout-stat b{display:block;color:#fff;font-size:13px;}
+.mt-scout-stat span{color:#8fa6ba;font-size:10px;}
+.mt-scout-rec{
+  margin:0;
+  padding-left:18px;
+  color:#d8e6f3;
+  line-height:1.55;
+}
+.mt-scout-rec li{margin:7px 0;}
+.mt-scout-top-card{
+  padding:14px;
+  border:1px solid rgba(0,212,255,.18);
+  border-radius:14px;
+  margin-bottom:10px;
+  background:rgba(8,31,49,.55);
+}
+.mt-scout-top-card strong{color:#fff;}
+.mt-scout-top-card .why{color:#a9bfd2;margin-top:7px;line-height:1.45;font-size:12px;}
+.mt-threatbar{
+  height:7px;
+  background:#10263a;
+  border-radius:999px;
+  overflow:hidden;
+  margin-top:7px;
+}
+.mt-threatbar > i{
+  display:block;height:100%;
+  background:linear-gradient(90deg,#00d4ff,#ff1744);
+  border-radius:999px;
+}
+.mt-scout-empty{
+  padding:28px 18px;
+  text-align:center;
+  color:#a9b8c8;
+  border:1px dashed rgba(0,212,255,.25);
+  border-radius:16px;
+}
+@media(max-width:1250px){
+  .brand-wrap{flex-wrap:wrap;}
+  .mt-view-nav{width:100%;max-width:none;margin-left:0;justify-content:flex-start;}
+  .mt-scout-player{grid-template-columns:50px minmax(180px,1fr) repeat(3,minmax(70px,.5fr));}
+  .mt-scout-player .mt-hide-md{display:none;}
+}
+@media(max-width:900px){
+  .mt-scout-controls,.mt-scout-summary,.mt-scout-grid{grid-template-columns:1fr 1fr;}
+  .mt-scout-grid{grid-template-columns:1fr;}
+}
+@media(max-width:650px){
+  .mt-view-nav{display:grid;grid-template-columns:1fr 1fr;}
+  .mt-view-btn{width:100%;padding:9px 8px;font-size:10px;}
+  .mt-scout-controls,.mt-scout-summary{grid-template-columns:1fr;}
+  .mt-scout-player{grid-template-columns:44px 1fr 72px;}
+  .mt-scout-player .mt-hide-sm{display:none;}
+}
+@media print{
+  body.mt-print-scouting header,
+  body.mt-print-scouting main > *:not(#mtScoutingSection),
+  body.mt-print-scouting .mt-view-nav,
+  body.mt-print-scouting #mtScoutingSection .mt-scout-controls,
+  body.mt-print-scouting footer{display:none !important;}
+  body.mt-print-scouting #mtScoutingSection{display:block !important;}
+  body.mt-print-scouting{background:#fff !important;color:#111 !important;}
+  body.mt-print-scouting #mtScoutingSection,
+  body.mt-print-scouting #mtScoutingSection *{color:#111 !important;box-shadow:none !important;}
+}
+</style>
+
+</head>
+
+<body>
+<header class="hero-header">
+  <div class="brand-wrap">
+    <img class="mt-logo" src="./mt-logo.png" alt="MT PRO"> 
+    <div class="brand-text">
+      <h1><span class="mt-word">MT</span> <span class="pro-word">PRO</span> BÁSQUET</h1>
+      <div class="subtitle">Carga, analiza y compara estadísticas de básquet por equipo y jugadores.</div>
+    </div>
+
+<nav class="mt-view-nav" aria-label="Ventanas de análisis">
+  <button type="button" class="mt-view-btn active" data-view="team" onclick="mtSetWorkspaceView('team')">EQUIPO</button>
+  <button type="button" class="mt-view-btn" data-view="individual" onclick="mtSetWorkspaceView('individual')">INDIVIDUAL</button>
+  <button type="button" class="mt-view-btn" data-view="compare" onclick="mtSetWorkspaceView('compare')">COMPARACIONES<br>INDIVIDUALES</button>
+  <button type="button" class="mt-view-btn" data-view="scouting" onclick="mtSetWorkspaceView('scouting')">INFORME DE<br>SCOUTING</button>
+</nav>
+
+  </div>
+</header>
+
+<main>
+  <section class="top-dashboard">
+  <section class="upload-box">
+    <h2>Carga de partidos</h2>
+    <p>Formato esperado: planilla CABB/Gesdeportiva en PDF o EXCEL. Lee PDFs con texto y mejor lee los EXCEL.</p>
+    <input type="file" id="pdfInput" accept="application/pdf,image/png,image/jpeg,image/jpg,image/webp,.xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" multiple />
+    <div class="actions">
+      <label class="date-filter-label">Fecha inicio
+        <input type="date" id="dateFrom" onchange="renderDashboard()" />
+      </label>
+      <label class="date-filter-label">Fecha finalización
+        <input type="date" id="dateTo" onchange="renderDashboard()" />
+      </label>
+      <select id="teamSelect">
+        <option value="">EQUIPOS</option>
+      </select>
+      <button onclick="renderDashboard()">ANALIZAR</button>
+      <button class="secondary" onclick="exportCSV()">Exportar CSV</button>
+      <button class="secondary" onclick="clearAll()">Limpiar</button>
+    </div>
+    <div id="status" class="status">Todavía no se cargaron archivos.</div>
+    <div id="ocr-note-mt" class="status"><span class="warn">Nota:</span> Con el EXCEL cargan mejor los datos, los PDFs tienen un formato que tira positivos en todas las valoraciones.</div>
+  </section>
+
+  <section class="grid">
+    <div class="card">
+      <div class="metric-title">Plays totales</div>
+      <div class="metric-value" id="mPlays">-</div>
+      
+    </div>
+    <div class="card">
+      <div class="metric-title">Puntos</div>
+      <div class="metric-value" id="mPts">-</div>
+      <div class="metric-note">Puntos acumulados</div>
+    </div>
+    <div class="card">
+      <div class="metric-title">PPP</div>
+      <div class="metric-value" id="mPPP">-</div>
+      <div class="metric-note">Puntos por Play</div>
+    </div>
+    <div class="card">
+      <div class="metric-title">eFG%</div>
+      <div class="metric-value" id="mEFG">-</div>
+      <div class="metric-note">Porcentaje Efectivo de Tiro de Campo</div>
+    </div>
+  </section>
+  </section>
+
+  <h2 class="section-title">☆ Comparativas entre equipos cargados ☆</h2>
+  <section class="comparison-grid">
+    <div class="card">
+      <h3>Comparativa ofensiva</h3>
+      <div class="table-wrap mini-table">
+        <table id="comparisonTable">
+          <thead>
+            <tr>
+              <th>Equipo</th>
+              <th>PTS</th>
+              <th>RD</th>
+              <th>RO</th>
+              <th>REB</th>
+              <th>Plays</th>
+              <th>PPP</th>
+              <th>eFG%</th>
+              <th>PER</th>
+              <th>VAL</th>
+              <th>+/-</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3>PPP por equipo</h3>
+      <canvas id="chartTeamPPP"></canvas>
+    </div>
+    <div class="card">
+      <h3>Eficiencia de tiro por equipo</h3>
+      <canvas id="chartTeamEFG"></canvas>
+    </div>
+
+    <div class="card mt-avg-card">
+      <h3>Promedios por condición</h3>
+      <p class="status">Elegí un equipo y si querés analizar sus partidos de LOCAL, VISITANTE o TODOS. La condición se lee directamente del nombre de cada archivo: el equipo antes de “vs” es LOCAL y el equipo después de “vs” es VISITANTE. El filtro se aplica sobre el equipo seleccionado.</p>
+
+      <div class="mt-avg-controls">
+        <label class="status"><b>Equipo</b>
+          <select id="avgTeamSelect" onchange="renderVenueAverages()">
+            <option value="">Seleccionar equipo</option>
+          </select>
+        </label>
+
+        <label class="status"><b>Condición</b>
+          <select id="avgVenueSelect" onchange="renderVenueAverages()">
+            <option value="TODOS">TODOS</option>
+            <option value="LOCAL">LOCAL</option>
+            <option value="VISITANTE">VISITANTE</option>
+          </select>
+        </label>
+      </div>
+
+      <div id="avgVenueInfo" class="status">Cargá partidos y seleccioná un equipo.</div>
+
+      <div class="table-wrap mt-avg-table-wrap">
+        <table id="avgVenueTable">
+          <thead>
+            <tr>
+              <th>Equipo / Jugador</th>
+              <th>PJ</th>
+              <th>MIN</th>
+              <th>PTS</th>
+              <th>2P</th>
+              <th>2P%</th>
+              <th>3P</th>
+              <th>3P%</th>
+              <th>TL</th>
+              <th>TL%</th>
+              <th>RD</th>
+              <th>RO</th>
+              <th>REB</th>
+              <th>AST</th>
+              <th>REC</th>
+              <th>PER</th>
+              <th>TAP TC</th>
+              <th>TAP TR</th>
+              <th>FC</th>
+              <th>FR</th>
+              <th>VAL</th>
+              <th>+/-</th>
+              <th>Plays</th>
+              <th>PPP</th>
+              <th>eFG%</th>
+              <th>% Plays 1P</th>
+              <th>% Plays 2P</th>
+              <th>% Plays 3P</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <h2 class="section-title">Análisis individual por jugador</h2>
+  <section class="player-analysis">
+    <div class="card player-panel">
+      <h3>Elegir equipo y jugador</h3>
+      <p class="status">Primero seleccioná el equipo. Después se cargarán únicamente los jugadores de ese equipo.</p>
+      <label class="status"><b>Equipo</b></label>
+      <select id="playerTeamSelect" onchange="populatePlayerSelect(); renderSelectedPlayerChart();">
+        <option value="">Seleccionar equipo</option>
+      </select>
+      <label class="status"><b>Jugador</b></label>
+      <select id="playerSelect" onchange="renderSelectedPlayerChart()">
+        <option value="">Seleccionar jugador</option>
+      </select>
+      <div id="playerInfo" class="status">Todavía no se seleccionó ningún jugador.</div>
+    </div>
+    <div class="card">
+      <h3>Porcentajes del jugador seleccionado</h3>
+      <canvas id="chartPlayerPie"></canvas>
+    </div>
+  </section>
+
+  <h2 class="section-title">Comparativa individual entre jugadores</h2>
+  <section class="player-compare-grid">
+    <div class="card player-panel">
+      <h3>Jugador 1</h3>
+      <label class="status"><b>Equipo</b></label>
+      <select id="compareTeam1" onchange="populateComparePlayerSelect(1); renderComparePlayer(1);">
+        <option value="">Seleccionar equipo</option>
+      </select>
+
+      <div class="compare-date-row">
+        <label class="compare-date-label">Fecha inicio
+          <input type="date" id="compareDateFrom1" onchange="renderComparePlayer(1); renderComparePlayer(2);" />
+        </label>
+        <label class="compare-date-label">Fecha finalización
+          <input type="date" id="compareDateTo1" onchange="renderComparePlayer(1); renderComparePlayer(2);" />
+        </label>
+      </div>
+
+      <label class="status"><b>Jugador</b></label>
+      <select id="comparePlayer1" onchange="renderComparePlayer(1);">
+        <option value="">Seleccionar jugador</option>
+      </select>
+      <div id="compareInfo1" class="status">Seleccioná equipo y jugador para comparar.</div>
+      <canvas id="chartComparePie1"></canvas>
+    </div>
+    <div class="card player-panel">
+      <h3>Jugador 2</h3>
+      <label class="status"><b>Equipo</b></label>
+      <select id="compareTeam2" onchange="populateComparePlayerSelect(2); renderComparePlayer(2);">
+        <option value="">Seleccionar equipo</option>
+      </select>
+
+      <div class="compare-date-row">
+        <label class="compare-date-label">Fecha inicio
+          <input type="date" id="compareDateFrom2" onchange="renderComparePlayer(1); renderComparePlayer(2);" />
+        </label>
+        <label class="compare-date-label">Fecha finalización
+          <input type="date" id="compareDateTo2" onchange="renderComparePlayer(1); renderComparePlayer(2);" />
+        </label>
+      </div>
+
+      <label class="status"><b>Jugador</b></label>
+      <select id="comparePlayer2" onchange="renderComparePlayer(2);">
+        <option value="">Seleccionar jugador</option>
+      </select>
+      <div id="compareInfo2" class="status">Seleccioná equipo y jugador para comparar.</div>
+      <canvas id="chartComparePie2"></canvas>
+    </div>
+  </section>
+
+<h2 class="section-title">Vista separada: equipo y jugadores</h2>
+  <section class="split-view">
+    <div class="card table-wrap">
+      <h3>Estadísticas del equipo</h3>
+      <table id="teamSideTable">
+        <thead>
+          <tr>
+            <th>Equipo</th>
+            <th>PTS</th>
+            <th>2P</th>
+            <th>3P</th>
+            <th>TL</th>
+            <th>RD</th>
+            <th>RO</th>
+            <th>REB</th>
+            <th>VAL</th>
+            <th>+/-</th>
+            <th>Plays</th>
+            <th>PPP</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="card table-wrap">
+      <h3>Estadísticas de jugadores</h3>
+      <table id="playerSideTable">
+        <thead>
+          <tr>
+            <th>Jugador</th>
+            <th>Equipo</th>
+            <th>MIN</th>
+            <th>PTS</th>
+            <th>2P</th>
+            <th>3P</th>
+            <th>TL</th>
+            <th>RD</th>
+            <th>RO</th>
+            <th>REB</th>
+            <th>AST</th>
+            <th>REC</th>
+            <th>PER</th>
+            <th>TAP TC</th>
+            <th>TAP TR</th>
+            <th>FC</th>
+            <th>FR</th>
+            <th>VAL</th>
+            <th>+/-</th>
+            <th>Plays</th>
+            <th>PPP</th>
+            <th>eFG%</th>
+            <th>% Plays 1P</th>
+            <th>% Plays 2P</th>
+            <th>% Plays 3P</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="charts">
+    <div class="card">
+      <h3>Finalización de Plays (%)</h3>
+      <canvas id="chartFinalizacion"></canvas>
+    </div>
+    <div class="card">
+      <h3>Aporte al PPP por tipo de tiro</h3>
+      <canvas id="chartPPP"></canvas>
+    </div>
+  </section>
+
+  <h2 class="section-title">Resumen por equipo</h2>
+  <div class="card table-wrap">
+    <table id="teamTable">
+      <thead>
+        <tr>
+          <th>Equipo</th>
+          <th>PJ</th>
+          <th>PTS</th>
+          <th>2P</th>
+          <th>3P</th>
+          <th>TL</th>
+          <th>RD</th>
+          <th>RO</th>
+          <th>REB</th>
+          <th>AST</th>
+          <th>REC</th>
+          <th>PER</th>
+          <th>TAP TC</th>
+          <th>TAP TR</th>
+          <th>FC</th>
+          <th>FR</th>
+          <th>VAL</th>
+          <th>+/-</th>
+          <th>Plays</th>
+          <th>PPP</th>
+          <th>eFG%</th>
+          <th>% Plays 1P</th>
+          <th>% Plays 2P</th>
+          <th>% Plays 3P</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <h2 class="section-title">Resumen por jugador</h2>
+  <div class="card table-wrap">
+    <table id="playerTable">
+      <thead>
+        <tr>
+          <th>Jugador</th>
+          <th>Equipo</th>
+          <th>PJ</th>
+          <th>MIN</th>
+          <th>PTS</th>
+          <th>2P</th>
+          <th>3P</th>
+          <th>TL</th>
+          <th>RD</th>
+          <th>RO</th>
+          <th>REB</th>
+          <th>AST</th>
+          <th>REC</th>
+          <th>PER</th>
+          <th>TAP TC</th>
+          <th>TAP TR</th>
+          <th>FC</th>
+          <th>FR</th>
+          <th>VAL</th>
+          <th>+/-</th>
+          <th>Plays</th>
+          <th>PPP</th>
+          <th>eFG%</th>
+          <th>% Plays 1P</th>
+          <th>% Plays 2P</th>
+          <th>% Plays 3P</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+<section id="mtScoutingSection" class="card mt-view-block" data-mt-view="scouting" hidden>
+  <h2 class="section-title" style="margin-top:2px!important">INFORME DE SCOUTING</h2>
+  <p class="status" style="text-align:center;max-width:980px;margin:0 auto 16px">
+    Analiza los partidos cargados del rival, ordena sus amenazas ofensivas y genera prioridades defensivas a partir de volumen, eficiencia y producción estadística.
+  </p>
+
+  <div class="mt-scout-controls">
+    <label>Rival
+      <select id="mtScoutTeam" onchange="mtRenderScouting()">
+        <option value="">Seleccionar rival</option>
+      </select>
+    </label>
+    <label>Condición
+      <select id="mtScoutVenue" onchange="mtRenderScouting()">
+        <option value="TODOS">TODOS</option>
+        <option value="LOCAL">LOCAL</option>
+        <option value="VISITANTE">VISITANTE</option>
+      </select>
+    </label>
+    <label>Partidos
+      <select id="mtScoutGames" onchange="mtRenderScouting()">
+        <option value="ALL">TODOS</option>
+        <option value="3">ÚLTIMOS 3</option>
+        <option value="5">ÚLTIMOS 5</option>
+        <option value="10">ÚLTIMOS 10</option>
+      </select>
+    </label>
+    <button type="button" onclick="mtPrintScouting()">IMPRIMIR / PDF</button>
+  </div>
+
+  <div id="mtScoutInfo" class="status">Cargá partidos y seleccioná un rival.</div>
+  <div id="mtScoutSummary"></div>
+
+  <div class="mt-scout-grid">
+    <div class="mt-scout-panel">
+      <h3>PRIORIDAD DEFENSIVA</h3>
+      <div id="mtScoutRanking" class="mt-scout-empty">Todavía no hay un rival seleccionado.</div>
+    </div>
+    <div class="mt-scout-panel">
+      <h3>PLAN DEFENSIVO SUGERIDO</h3>
+      <div id="mtScoutPlan" class="mt-scout-empty">El informe se genera automáticamente con los datos cargados.</div>
+    </div>
+  </div>
+</section>
+
+</main>
+<footer class="mt-footer">🏀 MT PRO BÁSQUET - ANALÍTICA PROFESIONAL</footer>
+
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
+
+let allPlayers = [];
+let allTeams = {};
+let charts = {};
+
+const $ = (id) => document.getElementById(id);
+
+function splitAI(value){
+  const m = String(value || "").match(/(\d+)\s*\/\s*(\d+)/);
+  return m ? {made:+m[1], att:+m[2]} : {made:0, att:0};
+}
+
+function pct(n, d){
+  return d ? (n / d * 100) : 0;
+}
+
+function num(n, dec=2){
+  if (!isFinite(n)) return "0";
+  return Number(n).toFixed(dec);
+}
+
+function calcRow(r){
+  const tci = r.t2a + r.t3a;
+  const plays = tci + (0.44 * r.tla) + r.per;
+  const pts = r.pts;
+  const ppp = plays ? pts / plays : 0;
+  const efg = tci ? ((r.t2m + 1.5 * r.t3m) / tci) * 100 : 0;
+
+  const ppp1 = plays ? r.tlm / plays : 0;
+  const ppp2 = plays ? (r.t2m * 2) / plays : 0;
+  const ppp3 = plays ? (r.t3m * 3) / plays : 0;
+
+  const fin1 = plays ? ((0.44 * r.tla) / plays) * 100 : 0;
+  const fin2 = plays ? (r.t2a / plays) * 100 : 0;
+  const fin3 = plays ? (r.t3a / plays) * 100 : 0;
+  const finPer = plays ? (r.per / plays) * 100 : 0;
+
+  return {...r, tci, plays, ppp, efg, ppp1, ppp2, ppp3, fin1, fin2, fin3, finPer};
+}
+
+function addAgg(map, key, row){
+  if(!map[key]){
+    map[key] = {
+      team:key, games:new Set(), min:0, pts:0,
+      t2m:0,t2a:0,t3m:0,t3a:0,tlm:0,tla:0,rd:0,ro:0,reb:0,ast:0,rec:0,per:0,tapTC:0,tapTR:0,fc:0,fr:0,val:0,pm:0
+    };
+  }
+  const a = map[key];
+  a.games.add(row.gameId);
+  a.min += row.minDecimal || 0;
+  a.pts += row.pts;
+  a.t2m += row.t2m; a.t2a += row.t2a;
+  a.t3m += row.t3m; a.t3a += row.t3a;
+  a.tlm += row.tlm; a.tla += row.tla;
+  a.rd += row.rd || 0;
+  a.ro += row.ro || 0;
+  a.reb += row.reb || ((row.rd || 0) + (row.ro || 0));
+  a.ast += row.ast || 0;
+  a.rec += row.rec || 0;
+  a.per += row.per || 0;
+  a.tapTC += row.tapTC || 0;
+  a.tapTR += row.tapTR || 0;
+  a.fc += row.fc || 0;
+  a.fr += row.fr || 0;
+  a.val += row.val || 0;
+  a.pm += parseSignedIntToken(row.pm || 0);
+}
+
+function minToDecimal(mmss){
+  const m = String(mmss || "0:00").match(/(\d+):(\d+)/);
+  return m ? (+m[1] + (+m[2]/60)) : 0;
+}
+
+async function pdfToLines(file){
+  const typed = new Uint8Array(await file.arrayBuffer());
+  const pdf = await pdfjsLib.getDocument(typed).promise;
+  let lines = [];
+
+  for(let p=1; p<=pdf.numPages; p++){
+    const page = await pdf.getPage(p);
+    const content = await page.getTextContent();
+
+    const buckets = {};
+    content.items.forEach(item => {
+      const y = Math.round(item.transform[5]);
+      const x = item.transform[4];
+      if(!buckets[y]) buckets[y] = [];
+      buckets[y].push({x, text:item.str});
+    });
+
+    Object.keys(buckets)
+      .sort((a,b)=>b-a)
+      .forEach(y=>{
+        const line = buckets[y]
+          .sort((a,b)=>a.x-b.x)
+          .map(i=>i.text)
+          .join(" ")
+          .replace(/\s+/g," ")
+          .trim();
+        if(line) lines.push(line);
+      });
+  }
+
+  return lines;
+}
+
+
+async function imageToLines(file){
+  if(!window.Tesseract){
+    throw new Error("No se cargó Tesseract OCR. Revisá la conexión a internet.");
+  }
+  const result = await Tesseract.recognize(file, "spa+eng", {
+    logger: m => {
+      if(m.status && m.progress){
+        const pct = Math.round(m.progress * 100);
+        $("status").innerHTML = `Leyendo imagen con OCR: ${file.name} - ${m.status} ${pct}%`;
+      }
+    }
+  });
+  return textToLines(result.data.text || "");
+}
+
+
+async function imageToPositionedLines(file){
+  if(!window.Tesseract){
+    throw new Error("No se cargó Tesseract OCR. Revisá la conexión a internet.");
+  }
+
+  const bitmap = await createImageBitmap(file);
+  const canvas = document.createElement("canvas");
+  const maxW = 2600;
+  const scale = bitmap.width < maxW ? Math.min(3.2, maxW / bitmap.width) : 1.5;
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
+  const ctx = canvas.getContext("2d", {willReadFrequently:true});
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+
+  // Preprocesado suave: fondo blanco, letras/lineas negras. Mejora mucho capturas PNG.
+  const img = ctx.getImageData(0,0,canvas.width,canvas.height);
+  const d = img.data;
+  for(let i=0;i<d.length;i+=4){
+    const lum = 0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2];
+    const v = lum < 185 ? 0 : 255;
+    d[i]=d[i+1]=d[i+2]=v;
+    d[i+3]=255;
+  }
+  ctx.putImageData(img,0,0);
+
+  const result = await Tesseract.recognize(canvas, "spa+eng", {
+    tessedit_pageseg_mode: "6",
+    preserve_interword_spaces: "1",
+    logger: m => {
+      if(m.status && m.progress){
+        const pct = Math.round(m.progress * 100);
+        $("status").innerHTML = `OCR por filas: ${file.name} - ${m.status} ${pct}%`;
+      }
+    }
+  });
+
+  const words = (result.data.words || [])
+    .filter(w => (w.text || "").trim() && w.confidence > 25)
+    .map(w => {
+      const b = w.bbox || {};
+      return {text:(w.text||"").trim(), x0:b.x0||0, x1:b.x1||0, y0:b.y0||0, y1:b.y1||0, y:(b.y0+b.y1)/2};
+    });
+
+  if(!words.length) return textToLines(result.data.text || "");
+
+  // Agrupa palabras por filas usando la posición vertical del OCR.
+  words.sort((a,b)=>a.y-b.y);
+  const rows=[];
+  for(const w of words){
+    let row = rows.find(r => Math.abs(r.y - w.y) < 14*scale);
+    if(!row){ row = {y:w.y, words:[]}; rows.push(row); }
+    row.words.push(w);
+    row.y = (row.y*(row.words.length-1)+w.y)/row.words.length;
+  }
+
+  const lines = rows
+    .sort((a,b)=>a.y-b.y)
+    .map(r => r.words.sort((a,b)=>a.x0-b.x0).map(w=>w.text).join(" ").replace(/\s+/g," ").trim())
+    .filter(Boolean);
+
+  return repairOcrTableLines(lines);
+}
+
+function repairOcrTableLines(lines){
+  // Une filas partidas por OCR. Una fila válida CABB tiene minuto + 3 A/I.
+  const out=[];
+  let buffer="";
+  for(let line of lines){
+    line = normalizeStatLine(line);
+    if(!line) continue;
+    const startsPlayer = /^\d+\s+/.test(line) || /^\*?\d+\s+/.test(line);
+    const isTotals = /^TOTALES/i.test(line);
+    if((startsPlayer || isTotals) && buffer){
+      out.push(buffer.trim());
+      buffer="";
+    }
+    if(startsPlayer || isTotals || buffer){
+      buffer = (buffer + " " + line).trim();
+      const aiCount = (buffer.match(/\d+\s*\/\s*\d+/g)||[]).length;
+      if(/\d{1,3}:\d{2}/.test(buffer) && aiCount >= 3){
+        out.push(buffer.trim());
+        buffer="";
+      }
+    }else{
+      out.push(line);
+    }
+  }
+  if(buffer) out.push(buffer.trim());
+  return out;
+}
+
+function isGoodParse(parsed){
+  if(!parsed) return false;
+  const players = parsed.players || [];
+  if(players.length < 3) return false;
+  // Evita que una captura de la propia app o texto basura genere jugadores falsos.
+  const valid = players.filter(p => {
+    const nameOk = p.player && p.player.length >= 4 && !/^(RON|GON|STL|CIS|TON|PTS|EQUIPO)$/i.test(p.player);
+    const statOk = (p.t2a+p.t3a+p.tla+p.per+p.pts) > 0;
+    const teamOk = p.team && p.team.length >= 4 && !/Eus LW|SaY|by J|RESUMEN|JUGADOR/i.test(p.team);
+    return nameOk && statOk && teamOk;
+  });
+  return valid.length >= Math.min(3, players.length);
+}
+
+function aggregateTeamsFromPlayersIfNeeded(players){
+  const existing = new Set(Object.keys(allTeams));
+  const byTeam = {};
+  players.forEach(p=>{
+    if(existing.has(p.team)) return;
+    if(!byTeam[p.team]){
+      byTeam[p.team] = {
+        gameId:p.gameId, source:p.source, team:p.team, player:"TOTAL EQUIPO",
+        min:"0:00", minDecimal:0, pts:0,
+        t2m:0,t2a:0,t3m:0,t3a:0,tlm:0,tla:0,rd:0,ro:0,reb:0,ast:0,rec:0,per:0,tapTC:0,tapTR:0,fc:0,fr:0,val:0,pm:0
+      };
+    }
+    const a=byTeam[p.team];
+    a.minDecimal += p.minDecimal || 0;
+    a.pts += p.pts || 0;
+    a.t2m += p.t2m || 0; a.t2a += p.t2a || 0;
+    a.t3m += p.t3m || 0; a.t3a += p.t3a || 0;
+    a.tlm += p.tlm || 0; a.tla += p.tla || 0;
+    a.rd += p.rd || 0;
+    a.ro += p.ro || 0;
+    a.reb += p.reb || ((p.rd || 0) + (p.ro || 0));
+    a.ast += p.ast || 0;
+    a.rec += p.rec || 0;
+    a.per += p.per || 0;
+    a.tapTC += p.tapTC || 0;
+    a.tapTR += p.tapTR || 0;
+    a.fc += p.fc || 0;
+    a.fr += p.fr || 0;
+    a.val += p.val || 0;
+    a.pm += parseSignedIntToken(p.pm || 0);
+  });
+  Object.values(byTeam).forEach(row=>addAgg(allTeams, row.team, row));
+}
+
+async function pdfToOcrLines(file){
+  if(!window.Tesseract){
+    throw new Error("No se cargó Tesseract OCR. Revisá la conexión a internet.");
+  }
+  const typed = new Uint8Array(await file.arrayBuffer());
+  const pdf = await pdfjsLib.getDocument(typed).promise;
+  let lines = [];
+
+  for(let p=1; p<=pdf.numPages; p++){
+    const page = await pdf.getPage(p);
+    const viewport = page.getViewport({scale:2.4});
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    await page.render({canvasContext:ctx, viewport}).promise;
+
+    const result = await Tesseract.recognize(canvas, "spa+eng", {
+      logger: m => {
+        if(m.status && m.progress){
+          const pct = Math.round(m.progress * 100);
+          $("status").innerHTML = `OCR PDF: ${file.name} página ${p}/${pdf.numPages} - ${m.status} ${pct}%`;
+        }
+      }
+    });
+    lines.push(...textToLines(result.data.text || ""));
+  }
+  return lines;
+}
+
+function textToLines(text){
+  return String(text || "")
+    .replace(/\u00A0/g," ")
+    .split(/\r?\n/)
+    .map(x=>x.replace(/\s+/g," ").trim())
+    .filter(Boolean);
+}
+
+function normalizeStatLine(raw){
+  return String(raw || "")
+    .replace(/[­‑–—−]/g,"-")
+    .replace(/\u00A0/g," ")
+    .replace(/\bO\s*\/\s*O\b/g,"0/0")
+    .replace(/\bO\s*\/\s*(\d+)\b/g,"0/$1")
+    .replace(/\b(\d+)\s*\/\s*O\b/g,"$1/0")
+    .replace(/(\d)\s*\/\s*(\d)/g,"$1/$2")
+    .replace(/\s+/g," ")
+    .trim();
+}
+
+function isImageFile(file){
+  return /^image\//i.test(file.type || "") || /\.(png|jpe?g|webp)$/i.test(file.name || "");
+}
+
+function isPdfFile(file){
+  return (file.type || "") === "application/pdf" || /\.pdf$/i.test(file.name || "");
+}
+
+
+function parseSignedIntToken(x){
+  if(x === undefined || x === null) return 0;
+  const s = String(x).replace(/[−–—]/g,"-").replace(",", ".").trim();
+  const m = s.match(/[+-]?\d+/);
+  return m ? Number(m[0]) : 0;
+}
+
+function getStatsAfterTL(line, tlToken){
+  // Normaliza signos negativos y separa todo lo que viene después del tercer tiro libre.
+  const normalized = String(line).replace(/[−–—]/g, "-").replace(/\s+/g, " ").trim();
+  const idx = normalized.indexOf(tlToken);
+  if(idx < 0) return [];
+  let tail = normalized.slice(idx + tlToken.length).trim();
+
+  // Captura enteros con signo. Esto conserva "-2", "-8", "-11", etc.
+  const nums = tail.match(/[+-]?\d+/g) || [];
+  return nums.map(parseSignedIntToken);
+}
+
+function buildRowFromStats({gameId, source, team, player, min, minDecimal, pts, t2, t3, tl, afterTL}){
+  // afterTL en Gesdeportiva/CABB: TL%, DEF, OF, TOT, AST, REC, PER, TAP TC, TAP TR, FC, FR, VAL, +/-.
+  const rd = afterTL.length >= 2 ? afterTL[1] : 0;
+  const ro = afterTL.length >= 3 ? afterTL[2] : 0;
+  const reb = afterTL.length >= 4 ? afterTL[3] : (rd + ro);
+  const ast = afterTL.length >= 5 ? afterTL[4] : 0;
+  const rec = afterTL.length >= 6 ? afterTL[5] : 0;
+  const per = afterTL.length >= 7 ? afterTL[6] : 0;
+  const tapTC = afterTL.length >= 8 ? afterTL[7] : 0;
+  const tapTR = afterTL.length >= 9 ? afterTL[8] : 0;
+  const fc = afterTL.length >= 10 ? afterTL[9] : 0;
+  const fr = afterTL.length >= 11 ? afterTL[10] : 0;
+  const val = afterTL.length >= 12 ? afterTL[11] : 0;
+  const pm = afterTL.length >= 13 ? afterTL[12] : 0;
+
+  return {
+    gameId, source, team, player,
+    min, minDecimal, pts,
+    t2m:t2.made, t2a:t2.att,
+    t3m:t3.made, t3a:t3.att,
+    tlm:tl.made, tla:tl.att,
+    rd, ro, reb, ast, rec, per, tapTC, tapTR, fc, fr, val, pm, pmRaw:pm
+  };
+}
+
+function parseGame(lines, fileName){
+  let currentTeam = null;
+  const teamsInGame = [];
+  const players = [];
+  const gameId = fileName + "_" + Math.random().toString(36).slice(2,8);
+
+  for(const raw of lines){
+    let line = normalizeStatLine(raw).replace(/[−–—]/g,"-");
+
+    const upperLine = line.toUpperCase();
+    const looksLikeTeam =
+      line.length > 3 &&
+      /[A-ZÁÉÍÓÚÑa-záéíóúñ]/.test(line) &&
+      !/^\d+\s+/.test(line) &&
+      !/\d{1,3}:\d{2}/.test(line) &&
+      !(line.match(/\d+\/\d+/g)||[]).length &&
+      !line.includes(":") &&
+      !upperLine.includes("CONFEDER") &&
+      !upperLine.includes("ESTADÍSTICAS") &&
+      !upperLine.includes("CABB") &&
+      !upperLine.includes("LIGA") &&
+      !upperLine.includes("FASE") &&
+      !upperLine.includes("MINIMIX") &&
+      !upperLine.includes("GESDEPORTIVA") &&
+      !upperLine.includes("INDALWEB") &&
+      !upperLine.includes("NOMBRE") &&
+      !upperLine.includes("TC 2P") &&
+      !upperLine.includes("TC 3P") &&
+      !upperLine.includes("REBOTES") &&
+      !upperLine.includes("TOTALES") &&
+      !upperLine.includes("ENTRENADOR") &&
+      !upperLine.includes(" VS ");
+
+    if(looksLikeTeam){
+      currentTeam = line.trim();
+      if(!teamsInGame.includes(currentTeam)) teamsInGame.push(currentTeam);
+      continue;
+    }
+
+    if(!currentTeam) continue;
+
+    const ai = line.match(/\d+\s*\/\s*\d+/g);
+    if(!ai || ai.length < 3) continue;
+
+    const aiClean = ai.map(x => x.replace(/\s+/g,""));
+    const t2 = splitAI(aiClean[0]);
+    const t3 = splitAI(aiClean[1]);
+    const tl = splitAI(aiClean[2]);
+    const afterTL = getStatsAfterTL(line, ai[2]);
+
+    if(line.startsWith("TOTALES")){
+      const numsBefore = line.split(ai[0])[0].match(/[+-]?\d+/g) || [];
+      // En TOTALES, el primer número antes de 2P suele ser MIN 200:00; PTS aparece antes del primer A/I.
+      // Más seguro: luego de "TOTALES 200:00" tomar el primer entero después de minutos.
+      const minMatch = line.match(/\b\d{1,3}:\d{2}\b/);
+      let pts = 0;
+      if(minMatch){
+        const afterMin = line.slice(line.indexOf(minMatch[0]) + minMatch[0].length).trim();
+        const mPts = afterMin.match(/^[+-]?\d+/);
+        pts = mPts ? parseSignedIntToken(mPts[0]) : 0;
+      }
+      const row = buildRowFromStats({
+        gameId, source:fileName, team:currentTeam, player:"TOTAL EQUIPO",
+        min:"200:00", minDecimal:200, pts, t2, t3, tl, afterTL
+      });
+      addAgg(allTeams, currentTeam, row);
+      continue;
+    }
+
+    if(/^\d+\s+/.test(line) && /\d{1,3}:\d{2}/.test(line)){
+      const minMatch = line.match(/\b\d{1,3}:\d{2}\b/);
+      if(!minMatch) continue;
+
+      const beforeMin = line.slice(0, line.indexOf(minMatch[0])).trim();
+      const afterMin = line.slice(line.indexOf(minMatch[0]) + minMatch[0].length).trim();
+
+      const name = beforeMin
+        .replace(/^\d+\s+/, "")
+        .replace(/^\*/, "")
+        .replace(/\s*\(CAP\)\s*/g, "")
+        .trim();
+
+      const ptsMatch = afterMin.match(/^[+-]?\d+/);
+      const pts = ptsMatch ? parseSignedIntToken(ptsMatch[0]) : 0;
+
+      players.push(buildRowFromStats({
+        gameId, source:fileName, team:currentTeam, player:name,
+        min:minMatch[0], minDecimal:minToDecimal(minMatch[0]),
+        pts, t2, t3, tl, afterTL
+      }));
+    }
+  }
+
+  return {players, teamsInGame};
+}
+
+
+
+// ===== OCR AVANZADO PARA CAPTURAS DE TABLAS CABB / GESDEPORTIVA =====
+// Este modo no depende del texto continuo del OCR. Primero detecta la grilla de la tabla,
+// corta las celdas y después lee las celdas importantes: nombre, minutos, puntos, 2P, 3P, TL y pérdidas.
+async function parseImageTablesAdvanced(file){
+  if(!window.Tesseract){
+    throw new Error("No se cargó Tesseract OCR. Revisá la conexión a internet.");
+  }
+
+  const bitmap = await createImageBitmap(file);
+  const baseCanvas = document.createElement("canvas");
+  const baseCtx = baseCanvas.getContext("2d", {willReadFrequently:true});
+  baseCanvas.width = bitmap.width;
+  baseCanvas.height = bitmap.height;
+  baseCtx.drawImage(bitmap, 0, 0);
+
+  const gray = makeBinaryMap(baseCanvas);
+  const hLines = detectHorizontalLines(gray);
+  const blocks = groupTableBlocks(hLines, baseCanvas.height);
+
+  const all = {players:[], teamsInGame:[]};
+  let tableCount = 0;
+
+  for(const block of blocks){
+    const vLines = detectVerticalLines(gray, block.top, block.bottom);
+    if(vLines.length < 12) continue;
+
+    const xLines = normalizeGridLines(vLines, 10);
+    const yLines = normalizeGridLines(block.lines, 6);
+    if(xLines.length < 10 || yLines.length < 5) continue;
+
+    const team = await readTeamNameAboveTable(baseCanvas, block.top, file.name, tableCount + 1);
+    if(!all.teamsInGame.includes(team)) all.teamsInGame.push(team);
+
+    tableCount++;
+    $("status").innerHTML = `OCR avanzado: tabla ${tableCount}, equipo ${team}`;
+
+    // En estas planillas las columnas suelen ser:
+    // 0 número, 1 nombre, 2 MIN, 3 PTS, 4 2P A/I, 5 2P%, 6 3P A/I, 7 3P%, 8 TL A/I, 9 TL%,
+    // 10 DEF, 11 OF, 12 TOT, 13 AST, 14 REC, 15 PER, 16 TAP TC, 17 TAP TR, 18 FAL FC, 19 FAL FR, 20 VAL, 21 +/-.
+    const maxCol = xLines.length - 1;
+    const col = idx => Math.min(idx, maxCol - 1);
+
+    for(let r=2; r<yLines.length-1; r++){
+      const y1 = yLines[r];
+      const y2 = yLines[r+1];
+      if((y2-y1) < 14) continue;
+
+      const numberTxt = await ocrCell(baseCanvas, xLines[col(0)], y1, xLines[col(0)+1], y2, true);
+      const nameTxt = await ocrCell(baseCanvas, xLines[col(1)], y1, xLines[col(1)+1], y2, false);
+
+      let name = cleanOcrName(nameTxt);
+      const isTotals = /TOTALES/i.test(name);
+      const rowNumber = (numberTxt.match(/\d+/)||[""])[0];
+
+      if(!isTotals && !rowNumber) continue;
+      if(!name || name.length < 3) continue;
+      if(/NOMBRE|MIN|PTS|TC|REBOTES|FAL|TAP/i.test(name)) continue;
+
+      const minTxt = await ocrCell(baseCanvas, xLines[col(2)], y1, xLines[col(2)+1], y2, true);
+      const ptsTxt = await ocrCell(baseCanvas, xLines[col(3)], y1, xLines[col(3)+1], y2, true);
+      const t2Txt = await ocrCell(baseCanvas, xLines[col(4)], y1, xLines[col(4)+1], y2, true);
+      const t3Txt = await ocrCell(baseCanvas, xLines[col(6)], y1, xLines[col(6)+1], y2, true);
+      const tlTxt = await ocrCell(baseCanvas, xLines[col(8)], y1, xLines[col(8)+1], y2, true);
+      const rdTxt = await ocrCell(baseCanvas, xLines[col(10)], y1, xLines[col(10)+1], y2, true);
+      const roTxt = await ocrCell(baseCanvas, xLines[col(11)], y1, xLines[col(11)+1], y2, true);
+      const rebTxt = await ocrCell(baseCanvas, xLines[col(12)], y1, xLines[col(12)+1], y2, true);
+      const astTxt = await ocrCell(baseCanvas, xLines[col(13)], y1, xLines[col(13)+1], y2, true);
+      const recTxt = await ocrCell(baseCanvas, xLines[col(14)], y1, xLines[col(14)+1], y2, true);
+      const perTxt = await ocrCell(baseCanvas, xLines[col(15)], y1, xLines[col(15)+1], y2, true);
+      const tapTCTxt = await ocrCell(baseCanvas, xLines[col(16)], y1, xLines[col(16)+1], y2, true);
+      const tapTRTxt = await ocrCell(baseCanvas, xLines[col(17)], y1, xLines[col(17)+1], y2, true);
+      const fcTxt = await ocrCell(baseCanvas, xLines[col(18)], y1, xLines[col(18)+1], y2, true);
+      const frTxt = await ocrCell(baseCanvas, xLines[col(19)], y1, xLines[col(19)+1], y2, true);
+      const valTxt = await ocrCell(baseCanvas, xLines[col(20)], y1, xLines[col(20)+1], y2, true);
+      const pmTxt = await ocrCell(baseCanvas, xLines[col(21)], y1, xLines[col(21)+1], y2, true);
+
+      const min = normalizeMinute(minTxt);
+      const pts = toIntSafe(ptsTxt);
+      const t2 = splitAI(cleanOcrAI(t2Txt));
+      const t3 = splitAI(cleanOcrAI(t3Txt));
+      const tl = splitAI(cleanOcrAI(tlTxt));
+      const rd = toIntSafe(rdTxt);
+      const ro = toIntSafe(roTxt);
+      const reb = toIntSafe(rebTxt) || (rd + ro);
+      const ast = toIntSafe(astTxt);
+      const rec = toIntSafe(recTxt);
+      const per = toIntSafe(perTxt);
+      const tapTC = toIntSafe(tapTCTxt);
+      const tapTR = toIntSafe(tapTRTxt);
+      const fc = toIntSafe(fcTxt);
+      const fr = toIntSafe(frTxt);
+      const val = toIntSafe(valTxt);
+      const pm = toIntSafe(pmTxt);
+
+      const row = {
+        gameId: file.name + "_img_" + tableCount,
+        source: file.name + " (imagen OCR avanzado)",
+        team,
+        player: isTotals ? "TOTAL EQUIPO" : name,
+        min,
+        minDecimal:minToDecimal(min),
+        pts,
+        t2m:t2.made, t2a:t2.att,
+        t3m:t3.made, t3a:t3.att,
+        tlm:tl.made, tla:tl.att,
+        rd, ro, reb, per, val, pm
+      };
+
+      if(isTotals){
+        addAgg(allTeams, team, row);
+      }else{
+        all.players.push(row);
+      }
+    }
+  }
+
+  return all;
+}
+
+function makeBinaryMap(canvas){
+  const ctx = canvas.getContext("2d", {willReadFrequently:true});
+  const w = canvas.width, h = canvas.height;
+  const data = ctx.getImageData(0,0,w,h).data;
+  const black = new Uint8Array(w*h);
+  for(let i=0, p=0; i<data.length; i+=4, p++){
+    const r=data[i], g=data[i+1], b=data[i+2];
+    const lum = 0.299*r + 0.587*g + 0.114*b;
+    // Detecta líneas negras de la tabla, evitando letras grises.
+    black[p] = lum < 80 ? 1 : 0;
+  }
+  return {w,h,black};
+}
+
+function detectHorizontalLines(map){
+  const {w,h,black} = map;
+  const ys = [];
+  for(let y=0;y<h;y++){
+    let count=0;
+    const off=y*w;
+    for(let x=0;x<w;x++) count += black[off+x];
+    if(count > w*0.33) ys.push(y);
+  }
+  return normalizeGridLines(ys, 4);
+}
+
+function detectVerticalLines(map, top, bottom){
+  const {w,black} = map;
+  const xs = [];
+  const y1 = Math.max(0, top), y2 = Math.min(map.h-1, bottom);
+  const height = y2-y1+1;
+  for(let x=0;x<w;x++){
+    let count=0;
+    for(let y=y1;y<=y2;y++) count += black[y*w+x];
+    if(count > height*0.25) xs.push(x);
+  }
+  return normalizeGridLines(xs, 4);
+}
+
+function normalizeGridLines(values, gap){
+  if(!values.length) return [];
+  values = [...values].sort((a,b)=>a-b);
+  const groups=[];
+  let cur=[values[0]];
+  for(let i=1;i<values.length;i++){
+    if(values[i]-values[i-1] <= gap) cur.push(values[i]);
+    else{ groups.push(cur); cur=[values[i]]; }
+  }
+  groups.push(cur);
+  return groups.map(g=>Math.round(g.reduce((a,b)=>a+b,0)/g.length));
+}
+
+function groupTableBlocks(hLines, imgHeight){
+  const blocks=[];
+  let cur=[];
+  for(const y of hLines){
+    if(!cur.length || y-cur[cur.length-1] < 70) cur.push(y);
+    else{
+      if(cur.length >= 5) blocks.push({top:Math.max(0,cur[0]-2), bottom:Math.min(imgHeight-1,cur[cur.length-1]+2), lines:cur});
+      cur=[y];
+    }
+  }
+  if(cur.length >= 5) blocks.push({top:Math.max(0,cur[0]-2), bottom:Math.min(imgHeight-1,cur[cur.length-1]+2), lines:cur});
+  return blocks;
+}
+
+async function readTeamNameAboveTable(canvas, tableTop, fileName, idx){
+  const y = Math.max(0, tableTop - 90);
+  const h = Math.max(30, Math.min(80, tableTop - y - 5));
+  const crop = cropCanvas(canvas, 0, y, canvas.width, h, 2.2, false);
+  const result = await Tesseract.recognize(crop, "spa+eng", {
+    tessedit_pageseg_mode: "6",
+    logger:()=>{}
+  });
+  const lines = textToLines(result.data.text || "")
+    .map(cleanOcrName)
+    .filter(x=>x && !/ENTRENADOR|CONFEDER|ESTAD|NOMBRE|TC 2P|CABB/i.test(x));
+  // Normalmente la última línea antes de la tabla es el nombre del equipo.
+  return lines.length ? lines[lines.length-1] : `Equipo imagen ${idx}`;
+}
+
+async function ocrCell(canvas, x1, y1, x2, y2, numeric){
+  const pad = numeric ? 1 : 2;
+  const crop = cropCanvas(canvas, x1+pad, y1+pad, Math.max(2,x2-x1-pad*2), Math.max(2,y2-y1-pad*2), numeric ? 4.5 : 3.5, true);
+  const opts = {
+    tessedit_pageseg_mode: numeric ? "7" : "7",
+    preserve_interword_spaces: "1",
+    logger:()=>{}
+  };
+  if(numeric){
+    opts.tessedit_char_whitelist = "0123456789:/-";
+  }
+  const result = await Tesseract.recognize(crop, numeric ? "eng" : "spa+eng", opts);
+  return (result.data.text || "").replace(/\s+/g," ").trim();
+}
+
+function cropCanvas(src, x, y, w, h, scale, preprocess){
+  const out = document.createElement("canvas");
+  out.width = Math.max(1, Math.round(w*scale));
+  out.height = Math.max(1, Math.round(h*scale));
+  const ctx = out.getContext("2d", {willReadFrequently:true});
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(src, x, y, w, h, 0, 0, out.width, out.height);
+  if(preprocess){
+    const img = ctx.getImageData(0,0,out.width,out.height);
+    const d = img.data;
+    for(let i=0;i<d.length;i+=4){
+      const lum = 0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2];
+      const v = lum < 165 ? 0 : 255;
+      d[i]=d[i+1]=d[i+2]=v;
+      d[i+3]=255;
+    }
+    ctx.putImageData(img,0,0);
+  }
+  return out;
+}
+
+function cleanOcrName(s){
+  return String(s||"")
+    .replace(/[|_]/g," ")
+    .replace(/[“”]/g,"\"")
+    .replace(/^\d+\s*/,"")
+    .replace(/^\*/,"")
+    .replace(/\s*\(CAP\)\s*/gi, "")
+    .replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ' .,-]/g," ")
+    .replace(/\s+/g," ")
+    .trim();
+}
+
+function cleanOcrAI(s){
+  return String(s||"")
+    .replace(/[Oo]/g,"0")
+    .replace(/[Il]/g,"1")
+    .replace(/[^0-9\/]/g,"")
+    .replace(/(\d)(\d)$/,"$1/$2")
+    .replace(/^(\d+)(\d)$/,"$1/$2");
+}
+
+function normalizeMinute(s){
+  s = String(s||"").replace(/[Oo]/g,"0").replace(/[Il]/g,"1").replace(/[^0-9:]/g,"");
+  const m = s.match(/(\d{1,3})[: ]?(\d{2})/);
+  return m ? `${m[1]}:${m[2]}` : "0:00";
+}
+
+function toIntSafe(s){
+  const m = String(s||"").replace(/[Oo]/g,"0").replace(/[Il]/g,"1").match(/-?\d+/);
+  return m ? parseInt(m[0],10) : 0;
+}
+
+
+function mtNormalizeTeamName(value){
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase()
+    .replace(/\.[^.]+$/, "")
+    .replace(/[^A-Z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function mtTeamTokens(value){
+  const stop = new Set(["DE","DEL","LA","EL","LOS","LAS","CLUB","C","A","AC","CA"]);
+  return mtNormalizeTeamName(value)
+    .split(" ")
+    .filter(t => t && !stop.has(t));
+}
+
+function mtTeamMatchScore(a, b){
+  const A = mtTeamTokens(a);
+  const B = mtTeamTokens(b);
+  if(!A.length || !B.length) return 0;
+
+  const sa = new Set(A);
+  const sb = new Set(B);
+  let common = 0;
+  sa.forEach(t => { if(sb.has(t)) common++; });
+
+  // Coincidencia de tokens respecto del nombre más corto.
+  let score = common / Math.min(sa.size, sb.size);
+
+  const na = A.join(" ");
+  const nb = B.join(" ");
+  if(na === nb) score = 1;
+  else if(na.includes(nb) || nb.includes(na)) score = Math.max(score, 0.95);
+
+  return score;
+}
+
+function mtTeamsFromFilename(filename){
+  const base = String(filename || "")
+    .replace(/\.[^.]+$/, "")
+    .trim();
+
+  // Antes de "vs" = LOCAL. Después de "vs" = VISITANTE.
+  // Acepta: "Racing vs Platense", "Racing VS Platense", "Racing v Platense".
+  const parts = base.split(/\s+(?:VS\.?|V\.?)\s+/i);
+
+  if(parts.length < 2){
+    return { local:"", visitante:"" };
+  }
+
+  return {
+    local: parts[0].trim(),
+    visitante: parts.slice(1).join(" vs ").trim()
+  };
+}
+
+function mtVenueForSelectedTeam(filename, selectedTeam){
+  const f = mtTeamsFromFilename(filename);
+  if(!f.local || !f.visitante || !selectedTeam) return "";
+
+  const localScore = mtTeamMatchScore(selectedTeam, f.local);
+  const visitorScore = mtTeamMatchScore(selectedTeam, f.visitante);
+
+  if(localScore > visitorScore && localScore >= 0.50) return "LOCAL";
+  if(visitorScore > localScore && visitorScore >= 0.50) return "VISITANTE";
+
+  // Coincidencia directa adicional por texto normalizado.
+  const teamN = mtNormalizeTeamName(selectedTeam);
+  const localN = mtNormalizeTeamName(f.local);
+  const visitorN = mtNormalizeTeamName(f.visitante);
+
+  if(localN && (teamN.includes(localN) || localN.includes(teamN))) return "LOCAL";
+  if(visitorN && (teamN.includes(visitorN) || visitorN.includes(teamN))) return "VISITANTE";
+
+  return "";
+}
+
+function mtVenueForPlayerFromFilename(filename, playerTeam, teamsInGame){
+  const f = mtTeamsFromFilename(filename);
+  if(!f.local || !f.visitante) return "";
+
+  // 1) Comparación robusta del nombre del equipo del jugador
+  // contra cada lado escrito en el nombre del archivo.
+  const localScore = mtTeamMatchScore(playerTeam, f.local);
+  const visitorScore = mtTeamMatchScore(playerTeam, f.visitante);
+
+  if(localScore >= 0.60 && localScore > visitorScore) return "LOCAL";
+  if(visitorScore >= 0.60 && visitorScore > localScore) return "VISITANTE";
+
+  // 2) Fallback: si el parser encontró exactamente dos equipos,
+  // vinculamos cada uno con el lado del filename por similitud.
+  const parsedTeams = Array.isArray(teamsInGame) ? teamsInGame.filter(Boolean) : [];
+  if(parsedTeams.length >= 2){
+    const localParsed = [...parsedTeams]
+      .sort((a,b)=>mtTeamMatchScore(b, f.local)-mtTeamMatchScore(a, f.local))[0];
+
+    const remaining = parsedTeams.filter(t => t !== localParsed);
+    const visitorParsed = [...remaining]
+      .sort((a,b)=>mtTeamMatchScore(b, f.visitante)-mtTeamMatchScore(a, f.visitante))[0];
+
+    const actual = mtNormalizeTeamName(playerTeam);
+    if(localParsed && mtNormalizeTeamName(localParsed) === actual) return "LOCAL";
+    if(visitorParsed && mtNormalizeTeamName(visitorParsed) === actual) return "VISITANTE";
+  }
+
+  return "";
+}
+
+$("pdfInput").addEventListener("change", async function(e){
+  allPlayers = [];
+  allTeams = {};
+  const files = Array.from(e.target.files || []);
+  $("status").innerHTML = "Procesando archivos...";
+
+  try{
+    let processed = 0;
+    let images = 0;
+    let pdfs = 0;
+    let fallbacks = 0;
+
+    for(const file of files){
+      let lines = [];
+      let parsed = {players:[], teamsInGame:[]};
+
+      if(isPdfFile(file)){
+        pdfs++;
+        $("status").innerHTML = `Leyendo PDF: ${file.name}`;
+        lines = await pdfToLines(file);
+        parsed = parseGame(lines, file.name);
+
+        // Si el PDF viene como imagen escaneada o la extracción normal no detecta jugadores, usa OCR.
+        if(parsed.players.length === 0 && parsed.teamsInGame.length === 0){
+          fallbacks++;
+          lines = await pdfToOcrLines(file);
+          parsed = parseGame(lines, file.name + " (OCR)");
+        }
+      }else if(isImageFile(file)){
+        images++;
+        $("status").innerHTML = `Leyendo imagen PNG/JPG: ${file.name}`;
+
+        // 1) Primer intento: OCR por filas con posición de palabras. Es el mejor para capturas PNG de tablas.
+        lines = await imageToPositionedLines(file);
+        parsed = parseGame(lines, file.name + " (imagen OCR por filas)");
+
+        // 2) Segundo intento: OCR avanzado por celdas de grilla.
+        if(!isGoodParse(parsed)){
+          $("status").innerHTML = `Reintentando imagen por celdas: ${file.name}`;
+          parsed = await parseImageTablesAdvanced(file);
+        }
+
+        // 3) Último intento: OCR normal completo.
+        if(!isGoodParse(parsed)){
+          lines = await imageToLines(file);
+          parsed = parseGame(lines, file.name + " (imagen OCR normal)");
+        }
+
+        if(!isGoodParse(parsed)){
+          console.warn("OCR no válido", file.name, parsed, lines);
+          parsed = {players:[], teamsInGame:[]};
+          $("status").innerHTML = `<span class="warn">No pude detectar una tabla CABB válida en ${file.name}.</span> Subí la captura original de la planilla, completa y nítida; no una captura de la pantalla del dashboard.`;
+        }
+      }else{
+        console.warn("Archivo no soportado", file.name);
+        continue;
+      }
+
+      // MT: LOCAL/VISITANTE se toma del nombre del archivo.
+      // Antes de 'vs' = LOCAL | Después de 'vs' = VISITANTE.
+      parsed.players.forEach(p=>{
+        p.venue = mtVenueForPlayerFromFilename(file.name, p.team, parsed.teamsInGame);
+        p.sourceFile = file.name;
+      });
+
+      allPlayers.push(...parsed.players);
+      aggregateTeamsFromPlayersIfNeeded(parsed.players);
+      processed++;
+    }
+
+    const select = $("teamSelect");
+    select.innerHTML = `<option value="">Seleccionar equipo analizado</option>`;
+    Object.keys(allTeams).sort().forEach(team=>{
+      const opt = document.createElement("option");
+      opt.value = team;
+      opt.textContent = team;
+      select.appendChild(opt);
+    });
+
+    $("status").innerHTML = `<span class="ok">Carga completa.</span> Archivos: ${processed}. PDFs: ${pdfs}. Imágenes: ${images}. OCR en PDF: ${fallbacks}. Jugadores detectados: ${allPlayers.length}. Equipos detectados: ${Object.keys(allTeams).length}.`;
+    renderDashboard();
+  }catch(err){
+    console.error(err);
+    $("status").innerHTML = `<span class="warn">Error al procesar.</span> Revisá que el archivo sea PDF o una captura original de la planilla CABB/Gesdeportiva. No subas captura del dashboard; subí la tabla completa y nítida en PNG/JPG.`;
+  }
+});
+
+function getSelectedRows(){
+  const team = $("teamSelect").value;
+  const teamRows = Object.values(allTeams).map(t => calcRow({...t, gamesCount:t.games.size}));
+  const playerAgg = {};
+
+  allPlayers.forEach(p=>{
+    const key = p.team + "||" + p.player;
+    if(!playerAgg[key]){
+      playerAgg[key] = {
+        player:p.player, team:p.team, games:new Set(), min:0, pts:0,
+        t2m:0,t2a:0,t3m:0,t3a:0,tlm:0,tla:0,rd:0,ro:0,reb:0,ast:0,rec:0,per:0,tapTC:0,tapTR:0,fc:0,fr:0,val:0,pm:0
+      };
+    }
+    const a = playerAgg[key];
+    a.games.add(p.gameId);
+    a.min += p.minDecimal;
+    a.pts += p.pts;
+    a.t2m += p.t2m; a.t2a += p.t2a;
+    a.t3m += p.t3m; a.t3a += p.t3a;
+    a.tlm += p.tlm; a.tla += p.tla;
+    a.rd += p.rd || 0;
+    a.ro += p.ro || 0;
+    a.reb += p.reb || ((p.rd || 0) + (p.ro || 0));
+    a.ast += p.ast || 0;
+    a.rec += p.rec || 0;
+    a.per += p.per || 0;
+    a.tapTC += p.tapTC || 0;
+    a.tapTR += p.tapTR || 0;
+    a.fc += p.fc || 0;
+    a.fr += p.fr || 0;
+    a.val += p.val || 0;
+    a.pm += parseSignedIntToken(p.pm || 0);
+  });
+
+  let players = Object.values(playerAgg).map(p => calcRow({...p, gamesCount:p.games.size}));
+  let teams = teamRows;
+
+  if(team){
+    players = players.filter(p=>p.team === team);
+    teams = teams.filter(t=>t.team === team);
+  }
+
+  return {teams, players};
+}
+
+
+function getAllAggregatedRows(){
+  const teamRows = Object.values(allTeams).map(t => calcRow({...t, gamesCount:t.games.size}));
+  const playerAgg = {};
+
+  allPlayers.forEach(p=>{
+    const key = p.team + "||" + p.player;
+    if(!playerAgg[key]){
+      playerAgg[key] = {
+        player:p.player, team:p.team, games:new Set(), min:0, pts:0,
+        t2m:0,t2a:0,t3m:0,t3a:0,tlm:0,tla:0,rd:0,ro:0,reb:0,ast:0,rec:0,per:0,tapTC:0,tapTR:0,fc:0,fr:0,val:0,pm:0
+      };
+    }
+    const a = playerAgg[key];
+    a.games.add(p.gameId);
+    a.min += p.minDecimal;
+    a.pts += p.pts;
+    a.t2m += p.t2m; a.t2a += p.t2a;
+    a.t3m += p.t3m; a.t3a += p.t3a;
+    a.tlm += p.tlm; a.tla += p.tla;
+    a.rd += p.rd || 0;
+    a.ro += p.ro || 0;
+    a.reb += p.reb || ((p.rd || 0) + (p.ro || 0));
+    a.ast += p.ast || 0;
+    a.rec += p.rec || 0;
+    a.per += p.per || 0;
+    a.tapTC += p.tapTC || 0;
+    a.tapTR += p.tapTR || 0;
+    a.fc += p.fc || 0;
+    a.fr += p.fr || 0;
+    a.val += p.val || 0;
+    a.pm += parseSignedIntToken(p.pm || 0);
+  });
+
+  const players = Object.values(playerAgg).map(p => calcRow({...p, gamesCount:p.games.size}));
+  return {teams:teamRows, players};
+}
+
+function populatePlayerSelect(){
+  const select = $("playerSelect");
+  if(!select) return;
+  const current = select.value;
+  const {players} = getAllAggregatedRows();
+  select.innerHTML = `<option value="">Seleccionar jugador</option>`;
+  players
+    .slice()
+    .sort((a,b)=>(a.team+a.player).localeCompare(b.team+b.player))
+    .forEach(p=>{
+      const opt = document.createElement("option");
+      opt.value = p.team + "||" + p.player;
+      opt.textContent = `${p.player} — ${p.team}`;
+      select.appendChild(opt);
+    });
+  select.value = current;
+}
+
+function renderComparisons(){
+  const {teams} = getAllAggregatedRows();
+  const tbody = $("comparisonTable").querySelector("tbody");
+  tbody.innerHTML = teams
+    .slice()
+    .sort((a,b)=>b.ppp-a.ppp)
+    .map((r,idx)=>`
+      <tr>
+        <td><b>${idx+1}. ${r.team}</b></td>
+        <td>${r.pts}</td>
+        <td>${r.rd || 0}</td>
+        <td>${r.ro || 0}</td>
+        <td>${r.reb || ((r.rd || 0) + (r.ro || 0))}</td>
+        <td>${num(r.plays,1)}</td>
+        <td class="${idx===0?'badge-positive':''}">${num(r.ppp,3)}</td>
+        <td>${num(r.efg,1)}%</td>
+        <td>${r.per || 0}</td>
+        <td>${r.val || 0}</td>
+        <td>${r.pm || 0}</td>
+      </tr>
+    `).join("");
+
+  if(charts.teamPPP) charts.teamPPP.destroy();
+  if(charts.teamEFG) charts.teamEFG.destroy();
+
+  charts.teamPPP = new Chart($("chartTeamPPP"), {
+    type:"bar",
+    data:{
+      labels:teams.map(t=>t.team),
+      datasets:[{label:"PPP", data:teams.map(t=>Number(num(t.ppp,3))), borderWidth:1}]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:"#fff"}}},
+      scales:{
+        x:{ticks:{color:"#fff"}, grid:{color:"rgba(255,255,255,.08)"}},
+        y:{beginAtZero:true, ticks:{color:"#fff"}, grid:{color:"rgba(255,255,255,.08)"}}
+      }
+    }
+  });
+
+  charts.teamEFG = new Chart($("chartTeamEFG"), {
+    type:"bar",
+    data:{
+      labels:teams.map(t=>t.team),
+      datasets:[{label:"eFG%", data:teams.map(t=>Number(num(t.efg,1))), borderWidth:1}]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:"#fff"}}},
+      scales:{
+        x:{ticks:{color:"#fff"}, grid:{color:"rgba(255,255,255,.08)"}},
+        y:{beginAtZero:true, ticks:{color:"#fff", callback:v=>v+"%"}, grid:{color:"rgba(255,255,255,.08)"}}
+      }
+    }
+  });
+}
+
+function renderSideBySideTables(teams, players){
+  const teamBody = $("teamSideTable").querySelector("tbody");
+  const playerBody = $("playerSideTable").querySelector("tbody");
+
+  teamBody.innerHTML = teams.map(r=>`
+    <tr>
+      <td><b>${r.team}</b></td>
+      <td>${r.pts}</td>
+      <td>${r.t2m}/${r.t2a}</td>
+      <td>${r.t3m}/${r.t3a}</td>
+      <td>${r.tlm}/${r.tla}</td>
+      <td>${r.rd || 0}</td>
+      <td>${r.ro || 0}</td>
+      <td>${r.reb || ((r.rd || 0) + (r.ro || 0))}</td>
+      <td>${r.ast || 0}</td>
+      <td>${r.rec || 0}</td>
+      <td>${r.per || 0}</td>
+      <td>${r.tapTC || 0}</td>
+      <td>${r.tapTR || 0}</td>
+      <td>${r.fc || 0}</td>
+      <td>${r.fr || 0}</td>
+      <td>${r.val || 0}</td>
+      <td>${r.pm || 0}</td>
+      <td>${num(r.plays,1)}</td>
+      <td>${num(r.ppp,3)}</td>
+      <td>${num(r.efg,1)}%</td>
+      <td>${num(r.fin1,1)}%</td>
+      <td>${num(r.fin2,1)}%</td>
+      <td>${num(r.fin3,1)}%</td>
+    </tr>
+  `).join("");
+
+  playerBody.innerHTML = players
+    .slice()
+    .sort((a,b)=>b.pts-a.pts)
+    .map(r=>`
+      <tr>
+        <td><b>${r.player}</b></td>
+        <td>${r.team}</td>
+        <td>${num(r.min,1)}</td>
+        <td>${r.pts}</td>
+        <td>${r.t2m}/${r.t2a}</td>
+        <td>${r.t3m}/${r.t3a}</td>
+        <td>${r.tlm}/${r.tla}</td>
+        <td>${r.rd || 0}</td>
+        <td>${r.ro || 0}</td>
+        <td>${r.reb || ((r.rd || 0) + (r.ro || 0))}</td>
+        <td>${r.ast || 0}</td>
+        <td>${r.rec || 0}</td>
+        <td>${r.per || 0}</td>
+        <td>${r.tapTC || 0}</td>
+        <td>${r.tapTR || 0}</td>
+        <td>${r.fc || 0}</td>
+        <td>${r.fr || 0}</td>
+        <td>${r.val || 0}</td>
+        <td>${r.pm || 0}</td>
+        <td>${num(r.plays,1)}</td>
+        <td>${num(r.ppp,3)}</td>
+        <td>${num(r.efg,1)}%</td>
+        <td>${num(r.fin1,1)}%</td>
+        <td>${num(r.fin2,1)}%</td>
+        <td>${num(r.fin3,1)}%</td>
+      </tr>
+    `).join("");
+}
+
+function renderSelectedPlayerChart(){
+  const select = $("playerSelect");
+  if(!select) return;
+  const key = select.value;
+  const info = $("playerInfo");
+  const {players} = getAllAggregatedRows();
+  const p = players.find(x => (x.team + "||" + x.player) === key);
+
+  if(charts.playerPie) charts.playerPie.destroy();
+
+  if(!p){
+    if(info) info.textContent = "Todavía no se seleccionó ningún jugador.";
+    charts.playerPie = new Chart($("chartPlayerPie"), {
+      type:"pie",
+      data:{labels:["Sin datos"], datasets:[{data:[1]}]},
+      options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:"#fff"}}}}
+    });
+    return;
+  }
+
+  const pts1 = p.tlm;
+  const pts2 = p.t2m * 2;
+  const pts3 = p.t3m * 3;
+  const total = pts1 + pts2 + pts3;
+
+  if(info){
+    info.innerHTML = `
+      <b>${p.player}</b><br>
+      Equipo: ${p.team}<br>
+      Puntos: ${p.pts} | Rebotes: ${p.reb || ((p.rd || 0) + (p.ro || 0))} (RD ${p.rd || 0} / RO ${p.ro || 0}) | PER: ${p.per || 0} | VAL: ${p.val || 0} | +/-: ${p.pm || 0}<br>
+      Plays: ${num(p.plays,1)} | PPP: ${num(p.ppp,3)} | eFG%: ${num(p.efg,1)}%
+    `;
+  }
+
+  charts.playerPie = new Chart($("chartPlayerPie"), {
+    type:"pie",
+    data:{
+      labels:["Puntos desde TL", "Puntos de 2", "Puntos de 3"],
+      datasets:[{data: total ? [pts1, pts2, pts3] : [1,0,0]}]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{labels:{color:"#fff"}},
+        tooltip:{callbacks:{label:(ctx)=>{
+          const value = ctx.parsed;
+          const percentage = total ? (value / total * 100) : 0;
+          return `${ctx.label}: ${value} pts (${num(percentage,1)}%)`;
+        }}}
+      }
+    }
+  });
+}
+
+function renderDashboard(){
+  const {teams, players} = getSelectedRows();
+  const main = teams[0] || calcRow({pts:0,t2m:0,t2a:0,t3m:0,t3a:0,tlm:0,tla:0,per:0});
+
+  $("mPlays").textContent = num(main.plays,1);
+  $("mPts").textContent = main.pts || 0;
+  $("mPPP").textContent = num(main.ppp,3);
+  $("mEFG").textContent = num(main.efg,1) + "%";
+
+  renderTeamTable(teams);
+  renderPlayerTable(players);
+  renderCharts(main);
+  populatePlayerSelect();
+  renderComparisons();
+  renderSideBySideTables(teams, players);
+  renderSelectedPlayerChart();
+}
+
+function renderTeamTable(rows){
+  const tbody = $("teamTable").querySelector("tbody");
+  tbody.innerHTML = rows.map(r=>`
+    <tr>
+      <td><b>${r.team}</b></td>
+      <td>${r.gamesCount || 1}</td>
+      <td>${r.pts}</td>
+      <td>${r.t2m}/${r.t2a} (${num(pct(r.t2m,r.t2a),1)}%)</td>
+      <td>${r.t3m}/${r.t3a} (${num(pct(r.t3m,r.t3a),1)}%)</td>
+      <td>${r.tlm}/${r.tla} (${num(pct(r.tlm,r.tla),1)}%)</td>
+      <td>${r.rd || 0}</td>
+      <td>${r.ro || 0}</td>
+      <td>${r.reb || ((r.rd || 0) + (r.ro || 0))}</td>
+      <td>${r.ast || 0}</td>
+      <td>${r.rec || 0}</td>
+      <td>${r.per || 0}</td>
+      <td>${r.tapTC || 0}</td>
+      <td>${r.tapTR || 0}</td>
+      <td>${r.fc || 0}</td>
+      <td>${r.fr || 0}</td>
+      <td>${r.val || 0}</td>
+      <td>${r.pm || 0}</td>
+      <td>${num(r.plays,1)}</td>
+      <td>${num(r.ppp,3)}</td>
+      <td>${num(r.efg,1)}%</td>
+      <td>${num(r.fin1,1)}%</td>
+      <td>${num(r.fin2,1)}%</td>
+      <td>${num(r.fin3,1)}%</td>
+    </tr>
+  `).join("");
+}
+
+function renderPlayerTable(rows){
+  rows = rows.sort((a,b)=>b.plays-a.plays);
+  const tbody = $("playerTable").querySelector("tbody");
+  tbody.innerHTML = rows.map(r=>`
+    <tr>
+      <td><b>${r.player}</b></td>
+      <td>${r.team}</td>
+      <td>${r.gamesCount || 1}</td>
+      <td>${num(r.min,1)}</td>
+      <td>${r.pts}</td>
+      <td>${r.t2m}/${r.t2a} (${num(pct(r.t2m,r.t2a),1)}%)</td>
+      <td>${r.t3m}/${r.t3a} (${num(pct(r.t3m,r.t3a),1)}%)</td>
+      <td>${r.tlm}/${r.tla} (${num(pct(r.tlm,r.tla),1)}%)</td>
+      <td>${r.rd || 0}</td>
+      <td>${r.ro || 0}</td>
+      <td>${r.reb || ((r.rd || 0) + (r.ro || 0))}</td>
+      <td>${r.ast || 0}</td>
+      <td>${r.rec || 0}</td>
+      <td>${r.per || 0}</td>
+      <td>${r.tapTC || 0}</td>
+      <td>${r.tapTR || 0}</td>
+      <td>${r.fc || 0}</td>
+      <td>${r.fr || 0}</td>
+      <td>${r.val || 0}</td>
+      <td>${r.pm || 0}</td>
+      <td>${num(r.plays,1)}</td>
+      <td>${num(r.ppp,3)}</td>
+      <td>${num(r.efg,1)}%</td>
+      <td>${num(r.fin1,1)}%</td>
+      <td>${num(r.fin2,1)}%</td>
+      <td>${num(r.fin3,1)}%</td>
+    </tr>
+  `).join("");
+}
+
+function renderCharts(row){
+  Object.values(charts).forEach(c=>c.destroy());
+
+  const finalizacionData = [
+    row.fin1 || 0,
+    row.fin2 || 0,
+    row.fin3 || 0,
+    row.finPer || 0
+  ];
+
+  charts.finalizacion = new Chart($("chartFinalizacion"), {
+    type:"bar",
+    data:{
+      labels:["Tiros libres", "Tiros de 2", "Tiros de 3", "Pérdidas"],
+      datasets:[{
+        label:"% de finalización de Plays",
+        data:finalizacionData,
+        borderWidth:1
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{labels:{color:"#fff"}},
+        tooltip:{callbacks:{label:(ctx)=>`${ctx.dataset.label}: ${num(ctx.parsed.y,1)}%`}}
+      },
+      scales:{
+        x:{ticks:{color:"#fff"}, grid:{color:"rgba(255,255,255,.08)"}},
+        y:{beginAtZero:true, ticks:{color:"#fff", callback:v=>v+"%"}, grid:{color:"rgba(255,255,255,.08)"}}
+      }
+    }
+  });
+
+  charts.ppp = new Chart($("chartPPP"), {
+    type:"bar",
+    data:{
+      labels:["Tiros libres", "Tiros de 2", "Tiros de 3"],
+      datasets:[{
+        label:"Aporte al PPP",
+        data:[row.ppp1 || 0, row.ppp2 || 0, row.ppp3 || 0],
+        borderWidth:1
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{labels:{color:"#fff"}},
+        tooltip:{callbacks:{label:(ctx)=>`${ctx.dataset.label}: ${num(ctx.parsed.y,3)}`}}
+      },
+      scales:{
+        x:{ticks:{color:"#fff"}, grid:{color:"rgba(255,255,255,.08)"}},
+        y:{beginAtZero:true, ticks:{color:"#fff"}, grid:{color:"rgba(255,255,255,.08)"}}
+      }
+    }
+  });
+}
+
+function exportCSV(){
+  const {teams, players} = getSelectedRows();
+  const rows = [
+    ["TIPO","NOMBRE","EQUIPO","PJ","PTS","2PC","2PI","3PC","3PI","TLC","TLI","RD","RO","REB","AST","REC","PER","TAP_TC","TAP_TR","FC","FR","VAL","+/-","PLAYS","PPP","EFG%","FIN1%","FIN2%","FIN3%"],
+    ...teams.map(r=>["EQUIPO",r.team,r.team,r.gamesCount||1,r.pts,r.t2m,r.t2a,r.t3m,r.t3a,r.tlm,r.tla,r.rd||0,r.ro||0,r.reb||((r.rd||0)+(r.ro||0)),r.ast||0,r.rec||0,r.per||0,r.tapTC||0,r.tapTR||0,r.fc||0,r.fr||0,r.val||0,r.pm||0,num(r.plays,2),num(r.ppp,3),num(r.efg,1),num(r.fin1,1),num(r.fin2,1),num(r.fin3,1)]),
+    ...players.map(r=>["JUGADOR",r.player,r.team,r.gamesCount||1,r.pts,r.t2m,r.t2a,r.t3m,r.t3a,r.tlm,r.tla,r.rd||0,r.ro||0,r.reb||((r.rd||0)+(r.ro||0)),r.ast||0,r.rec||0,r.per||0,r.tapTC||0,r.tapTR||0,r.fc||0,r.fr||0,r.val||0,r.pm||0,num(r.plays,2),num(r.ppp,3),num(r.efg,1),num(r.fin1,1),num(r.fin2,1),num(r.fin3,1)])
+  ];
+
+  const csv = rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(";")).join("\n");
+  const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "dashboard_basquet_pro.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function clearAll(){
+  allPlayers = [];
+  allTeams = {};
+  $("pdfInput").value = "";
+  $("teamSelect").innerHTML = `<option value="">Seleccionar equipo analizado</option>`;
+  $("status").textContent = "Todavía no se cargaron archivos.";
+  renderDashboard();
+}
+</script>
+
+
+<script>
+/* ============================================================
+   MT DASHBOARD PRO V3 DEFINITIVA
+   - Parser robusto PDF GesDeportiva/CABB.
+   - Conserva signos negativos en +/- aunque el PDF los separe.
+   - Negativos en rojo, positivos en verde, cero blanco.
+   - Tablas alineadas y completas.
+   ============================================================ */
+
+function mtV3SignedNumber(v){
+  if(v === undefined || v === null || v === "") return 0;
+  let s = String(v)
+    .replace(/[−–—]/g, "-")
+    .replace(",", ".")
+    .trim();
+
+  // Une signos separados por espacios: "- 11" => "-11"
+  s = s.replace(/([+-])\s+(\d)/g, "$1$2");
+
+  const m = s.match(/[+-]?\d+(?:\.\d+)?/);
+  if(!m) return 0;
+  const n = Number(m[0]);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function mtV3FmtPM(v){
+  const n = mtV3SignedNumber(v);
+  if(n > 0) return "+" + n;
+  if(n < 0) return String(n);
+  return "0";
+}
+
+function mtV3ClassPM(v){
+  const n = mtV3SignedNumber(v);
+  if(n > 0) return "badge-positive";
+  if(n < 0) return "badge-negative";
+  return "";
+}
+
+function mtV3Safe(v){
+  return (v === undefined || v === null || v === "") ? 0 : v;
+}
+
+function mtV3Reb(r){
+  return mtV3Safe(r.reb) || ((Number(r.rd)||0) + (Number(r.ro)||0));
+}
+
+function mtV3Tiro(m,a,withPct=false){
+  m = Number(m)||0; a = Number(a)||0;
+  if(withPct) return `${m}/${a} (${num(pct(m,a),1)}%)`;
+  return `${m}/${a}`;
+}
+
+function mtV3SetHeader(tableId, labels){
+  const table = $(tableId);
+  if(!table) return;
+  const tr = table.querySelector("thead tr");
+  if(!tr) return;
+  tr.innerHTML = labels.map(x=>`<th>${x}</th>`).join("");
+}
+
+function mtV3SetHeaders(){
+  mtV3SetHeader("teamSideTable", ["Equipo","PTS","2P","3P","TL","RD","RO","REB","AST","REC","PER","TAP TC","TAP TR","FC","FR","VAL","+/-","Plays","PPP","eFG%","% Plays 1P","% Plays 2P","% Plays 3P"]);
+  mtV3SetHeader("playerSideTable", ["Jugador","Equipo","MIN","PTS","2P","3P","TL","RD","RO","REB","AST","REC","PER","TAP TC","TAP TR","FC","FR","VAL","+/-","Plays","PPP","eFG%","% Plays 1P","% Plays 2P","% Plays 3P"]);
+  mtV3SetHeader("teamTable", ["Equipo","PJ","PTS","2P","3P","TL","RD","RO","REB","AST","REC","PER","TAP TC","TAP TR","FC","FR","VAL","+/-","Plays","PPP","eFG%","% Plays 1P","% Plays 2P","% Plays 3P"]);
+  mtV3SetHeader("playerTable", ["Jugador","Equipo","PJ","MIN","PTS","2P","3P","TL","RD","RO","REB","AST","REC","PER","TAP TC","TAP TR","FC","FR","VAL","+/-","Plays","PPP","eFG%","% Plays 1P","% Plays 2P","% Plays 3P"]);
+}
+
+function mtV3NormalizeLineForStats(line){
+  return String(line || "")
+    .replace(/[−–—]/g, "-")
+    .replace(/([+-])\s+(\d)/g, "$1$2")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function mtV3StatsAfterTL(line, tlToken){
+  const normalized = mtV3NormalizeLineForStats(line);
+  const token = String(tlToken || "").replace(/\s+/g, "");
+  const ai = (normalized.match(/\d+\s*\/\s*\d+/g) || []).map(x => x.replace(/\s+/g,""));
+  const thirdAI = ai[2] || token;
+  const idx = normalized.replace(/\s+/g, " ").indexOf(thirdAI);
+  let tail = "";
+  if(idx >= 0){
+    tail = normalized.slice(idx + thirdAI.length).trim();
+  }else{
+    const parts = normalized.split(tlToken);
+    tail = parts.length > 1 ? parts.slice(1).join(" ") : "";
+  }
+
+  tail = mtV3NormalizeLineForStats(tail);
+
+  // Importante: captura enteros con signo, incluyendo "-11".
+  return (tail.match(/[+-]?\d+/g) || []).map(mtV3SignedNumber);
+}
+
+function mtV3BuildRow({gameId, source, team, player, min, minDecimal, pts, t2, t3, tl, afterTL}){
+  // Orden oficial posterior al TL:
+  // TL%, DEF, OF, Tot, AST, REC, PER, TAP TC, TAP TR, FAL FC, FAL FR, VAL, +/-.
+  const rd    = afterTL.length >= 2  ? afterTL[1]  : 0;
+  const ro    = afterTL.length >= 3  ? afterTL[2]  : 0;
+  const reb   = afterTL.length >= 4  ? afterTL[3]  : (rd + ro);
+  const ast   = afterTL.length >= 5  ? afterTL[4]  : 0;
+  const rec   = afterTL.length >= 6  ? afterTL[5]  : 0;
+  const per   = afterTL.length >= 7  ? afterTL[6]  : 0;
+  const tapTC = afterTL.length >= 8  ? afterTL[7]  : 0;
+  const tapTR = afterTL.length >= 9  ? afterTL[8]  : 0;
+  const fc    = afterTL.length >= 10 ? afterTL[9]  : 0;
+  const fr    = afterTL.length >= 11 ? afterTL[10] : 0;
+  const val   = afterTL.length >= 12 ? afterTL[11] : 0;
+  const pm    = afterTL.length >= 13 ? afterTL[12] : 0;
+
+  return {
+    gameId, source, team, player,
+    min, minDecimal, pts,
+    t2m:t2.made, t2a:t2.att,
+    t3m:t3.made, t3a:t3.att,
+    tlm:tl.made, tla:tl.att,
+    rd, ro, reb, ast, rec, per, tapTC, tapTR, fc, fr,
+    val, pm, pmRaw:pm
+  };
+}
+
+// Reemplazo definitivo de parseGame.
+parseGame = function(lines, fileName){
+  let currentTeam = null;
+  const teamsInGame = [];
+  const players = [];
+  const gameId = fileName + "_" + Math.random().toString(36).slice(2,8);
+
+  for(const raw of lines){
+    let line = normalizeStatLine(raw);
+    line = mtV3NormalizeLineForStats(line);
+    const upperLine = line.toUpperCase();
+
+    const looksLikeTeam =
+      line.length > 3 &&
+      /[A-ZÁÉÍÓÚÑa-záéíóúñ]/.test(line) &&
+      !/^\d+\s+/.test(line) &&
+      !/\d{1,3}:\d{2}/.test(line) &&
+      !(line.match(/\d+\/\d+/g)||[]).length &&
+      !line.includes(":") &&
+      !upperLine.includes("CONFEDER") &&
+      !upperLine.includes("ESTADÍSTICAS") &&
+      !upperLine.includes("CABB") &&
+      !upperLine.includes("LIGA") &&
+      !upperLine.includes("FASE") &&
+      !upperLine.includes("MINIMIX") &&
+      !upperLine.includes("GESDEPORTIVA") &&
+      !upperLine.includes("INDALWEB") &&
+      !upperLine.includes("NOMBRE") &&
+      !upperLine.includes("TC 2P") &&
+      !upperLine.includes("TC 3P") &&
+      !upperLine.includes("REBOTES") &&
+      !upperLine.includes("TOTALES") &&
+      !upperLine.includes("ENTRENADOR") &&
+      !upperLine.includes(" VS ");
+
+    if(looksLikeTeam){
+      currentTeam = line.trim();
+      if(!teamsInGame.includes(currentTeam)) teamsInGame.push(currentTeam);
+      continue;
+    }
+
+    if(!currentTeam) continue;
+
+    const ai = line.match(/\d+\s*\/\s*\d+/g);
+    if(!ai || ai.length < 3) continue;
+
+    const t2 = splitAI(ai[0].replace(/\s+/g,""));
+    const t3 = splitAI(ai[1].replace(/\s+/g,""));
+    const tl = splitAI(ai[2].replace(/\s+/g,""));
+    const afterTL = mtV3StatsAfterTL(line, ai[2]);
+
+    if(line.startsWith("TOTALES")){
+      const minMatch = line.match(/\b\d{1,3}:\d{2}\b/);
+      let pts = 0;
+      if(minMatch){
+        const afterMin = line.slice(line.indexOf(minMatch[0]) + minMatch[0].length).trim();
+        const ptsMatch = afterMin.match(/^[+-]?\d+/);
+        pts = ptsMatch ? mtV3SignedNumber(ptsMatch[0]) : 0;
+      }
+      const row = mtV3BuildRow({
+        gameId, source:fileName, team:currentTeam, player:"TOTAL EQUIPO",
+        min:"200:00", minDecimal:200, pts, t2, t3, tl, afterTL
+      });
+      addAgg(allTeams, currentTeam, row);
+      continue;
+    }
+
+    if(/^\d+\s+/.test(line) && /\d{1,3}:\d{2}/.test(line)){
+      const minMatch = line.match(/\b\d{1,3}:\d{2}\b/);
+      if(!minMatch) continue;
+
+      const beforeMin = line.slice(0, line.indexOf(minMatch[0])).trim();
+      const afterMin = line.slice(line.indexOf(minMatch[0]) + minMatch[0].length).trim();
+
+      const name = beforeMin
+        .replace(/^\d+\s+/, "")
+        .replace(/^\*/, "")
+        .replace(/\s*\(CAP\)\s*/g, "")
+        .trim();
+
+      const ptsMatch = afterMin.match(/^[+-]?\d+/);
+      const pts = ptsMatch ? mtV3SignedNumber(ptsMatch[0]) : 0;
+
+      players.push(mtV3BuildRow({
+        gameId, source:fileName, team:currentTeam, player:name,
+        min:minMatch[0], minDecimal:minToDecimal(minMatch[0]),
+        pts, t2, t3, tl, afterTL
+      }));
+    }
+  }
+
+  return {players, teamsInGame};
+};
+
+// Recalcula agregados siempre con +/- firmado real.
+const mtV3OldGetSelectedRows = getSelectedRows;
+getSelectedRows = function(){
+  if(Array.isArray(allPlayers)){
+    allPlayers.forEach(p => p.pm = mtV3SignedNumber(p.pmRaw !== undefined ? p.pmRaw : p.pm));
+  }
+  const result = mtV3OldGetSelectedRows();
+  result.players.forEach(p => p.pm = mtV3SignedNumber(p.pm));
+  result.teams.forEach(t => t.pm = mtV3SignedNumber(t.pm));
+  return result;
+};
+
+const mtV3OldGetAllAggregatedRows = getAllAggregatedRows;
+getAllAggregatedRows = function(){
+  if(Array.isArray(allPlayers)){
+    allPlayers.forEach(p => p.pm = mtV3SignedNumber(p.pmRaw !== undefined ? p.pmRaw : p.pm));
+  }
+  const result = mtV3OldGetAllAggregatedRows();
+  result.players.forEach(p => p.pm = mtV3SignedNumber(p.pm));
+  result.teams.forEach(t => t.pm = mtV3SignedNumber(t.pm));
+  return result;
+};
+
+renderSideBySideTables = function(teams, players){
+  mtV3SetHeaders();
+  const teamBody = $("teamSideTable").querySelector("tbody");
+  const playerBody = $("playerSideTable").querySelector("tbody");
+
+  teamBody.innerHTML = teams.map(r=>`
+    <tr>
+      <td><b>${r.team}</b></td>
+      <td>${mtV3Safe(r.pts)}</td>
+      <td>${mtV3Tiro(r.t2m,r.t2a)}</td>
+      <td>${mtV3Tiro(r.t3m,r.t3a)}</td>
+      <td>${mtV3Tiro(r.tlm,r.tla)}</td>
+      <td>${mtV3Safe(r.rd)}</td>
+      <td>${mtV3Safe(r.ro)}</td>
+      <td>${mtV3Reb(r)}</td>
+      <td>${mtV3Safe(r.ast)}</td>
+      <td>${mtV3Safe(r.rec)}</td>
+      <td>${mtV3Safe(r.per)}</td>
+      <td>${mtV3Safe(r.tapTC)}</td>
+      <td>${mtV3Safe(r.tapTR)}</td>
+      <td>${mtV3Safe(r.fc)}</td>
+      <td>${mtV3Safe(r.fr)}</td>
+      <td>${mtV3Safe(r.val)}</td>
+      <td class="${mtV3ClassPM(r.pm)}">${mtV3FmtPM(r.pm)}</td>
+      <td>${num(r.plays,1)}</td>
+      <td>${num(r.ppp,3)}</td>
+      <td>${num(r.efg,1)}%</td>
+      <td>${num(r.fin1,1)}%</td>
+      <td>${num(r.fin2,1)}%</td>
+      <td>${num(r.fin3,1)}%</td>
+    </tr>
+  `).join("");
+
+  playerBody.innerHTML = players.slice().sort((a,b)=>b.pts-a.pts).map(r=>`
+    <tr>
+      <td><b>${r.player}</b></td>
+      <td>${r.team}</td>
+      <td>${num(r.min,1)}</td>
+      <td>${mtV3Safe(r.pts)}</td>
+      <td>${mtV3Tiro(r.t2m,r.t2a)}</td>
+      <td>${mtV3Tiro(r.t3m,r.t3a)}</td>
+      <td>${mtV3Tiro(r.tlm,r.tla)}</td>
+      <td>${mtV3Safe(r.rd)}</td>
+      <td>${mtV3Safe(r.ro)}</td>
+      <td>${mtV3Reb(r)}</td>
+      <td>${mtV3Safe(r.ast)}</td>
+      <td>${mtV3Safe(r.rec)}</td>
+      <td>${mtV3Safe(r.per)}</td>
+      <td>${mtV3Safe(r.tapTC)}</td>
+      <td>${mtV3Safe(r.tapTR)}</td>
+      <td>${mtV3Safe(r.fc)}</td>
+      <td>${mtV3Safe(r.fr)}</td>
+      <td>${mtV3Safe(r.val)}</td>
+      <td class="${mtV3ClassPM(r.pm)}">${mtV3FmtPM(r.pm)}</td>
+      <td>${num(r.plays,1)}</td>
+      <td>${num(r.ppp,3)}</td>
+      <td>${num(r.efg,1)}%</td>
+      <td>${num(r.fin1,1)}%</td>
+      <td>${num(r.fin2,1)}%</td>
+      <td>${num(r.fin3,1)}%</td>
+    </tr>
+  `).join("");
+};
+
+renderTeamTable = function(rows){
+  mtV3SetHeaders();
+  const tbody = $("teamTable").querySelector("tbody");
+  tbody.innerHTML = rows.map(r=>`
+    <tr>
+      <td><b>${r.team}</b></td>
+      <td>${r.gamesCount || 1}</td>
+      <td>${mtV3Safe(r.pts)}</td>
+      <td>${mtV3Tiro(r.t2m,r.t2a,true)}</td>
+      <td>${mtV3Tiro(r.t3m,r.t3a,true)}</td>
+      <td>${mtV3Tiro(r.tlm,r.tla,true)}</td>
+      <td>${mtV3Safe(r.rd)}</td>
+      <td>${mtV3Safe(r.ro)}</td>
+      <td>${mtV3Reb(r)}</td>
+      <td>${mtV3Safe(r.ast)}</td>
+      <td>${mtV3Safe(r.rec)}</td>
+      <td>${mtV3Safe(r.per)}</td>
+      <td>${mtV3Safe(r.tapTC)}</td>
+      <td>${mtV3Safe(r.tapTR)}</td>
+      <td>${mtV3Safe(r.fc)}</td>
+      <td>${mtV3Safe(r.fr)}</td>
+      <td>${mtV3Safe(r.val)}</td>
+      <td class="${mtV3ClassPM(r.pm)}">${mtV3FmtPM(r.pm)}</td>
+      <td>${num(r.plays,1)}</td>
+      <td>${num(r.ppp,3)}</td>
+      <td>${num(r.efg,1)}%</td>
+      <td>${num(r.fin1,1)}%</td>
+      <td>${num(r.fin2,1)}%</td>
+      <td>${num(r.fin3,1)}%</td>
+    </tr>
+  `).join("");
+};
+
+renderPlayerTable = function(rows){
+  mtV3SetHeaders();
+  rows = rows.slice().sort((a,b)=>b.plays-a.plays);
+  const tbody = $("playerTable").querySelector("tbody");
+  tbody.innerHTML = rows.map(r=>`
+    <tr>
+      <td><b>${r.player}</b></td>
+      <td>${r.team}</td>
+      <td>${r.gamesCount || 1}</td>
+      <td>${num(r.min,1)}</td>
+      <td>${mtV3Safe(r.pts)}</td>
+      <td>${mtV3Tiro(r.t2m,r.t2a,true)}</td>
+      <td>${mtV3Tiro(r.t3m,r.t3a,true)}</td>
+      <td>${mtV3Tiro(r.tlm,r.tla,true)}</td>
+      <td>${mtV3Safe(r.rd)}</td>
+      <td>${mtV3Safe(r.ro)}</td>
+      <td>${mtV3Reb(r)}</td>
+      <td>${mtV3Safe(r.ast)}</td>
+      <td>${mtV3Safe(r.rec)}</td>
+      <td>${mtV3Safe(r.per)}</td>
+      <td>${mtV3Safe(r.tapTC)}</td>
+      <td>${mtV3Safe(r.tapTR)}</td>
+      <td>${mtV3Safe(r.fc)}</td>
+      <td>${mtV3Safe(r.fr)}</td>
+      <td>${mtV3Safe(r.val)}</td>
+      <td class="${mtV3ClassPM(r.pm)}">${mtV3FmtPM(r.pm)}</td>
+      <td>${num(r.plays,1)}</td>
+      <td>${num(r.ppp,3)}</td>
+      <td>${num(r.efg,1)}%</td>
+      <td>${num(r.fin1,1)}%</td>
+      <td>${num(r.fin2,1)}%</td>
+      <td>${num(r.fin3,1)}%</td>
+    </tr>
+  `).join("");
+};
+
+const mtV3OldRenderSelectedPlayerChart = renderSelectedPlayerChart;
+renderSelectedPlayerChart = function(){
+  mtV3OldRenderSelectedPlayerChart();
+  try{
+    const select = $("playerSelect");
+    const info = $("playerInfo");
+    if(!select || !info || !select.value) return;
+    const {players} = getAllAggregatedRows();
+    const p = players.find(x => (x.team + "||" + x.player) === select.value);
+    if(!p) return;
+    info.innerHTML = `
+      <b>${p.player}</b><br>
+      Equipo: ${p.team}<br>
+      Puntos: ${p.pts} | Rebotes: ${mtV3Reb(p)} (RD ${mtV3Safe(p.rd)} / RO ${mtV3Safe(p.ro)}) | AST: ${mtV3Safe(p.ast)} | REC: ${mtV3Safe(p.rec)} | PER: ${mtV3Safe(p.per)}<br>
+      TAP TC: ${mtV3Safe(p.tapTC)} | TAP TR: ${mtV3Safe(p.tapTR)} | FC: ${mtV3Safe(p.fc)} | FR: ${mtV3Safe(p.fr)} | VAL: ${mtV3Safe(p.val)} | +/-: <span class="${mtV3ClassPM(p.pm)}">${mtV3FmtPM(p.pm)}</span><br>
+      Plays: ${num(p.plays,1)} | PPP: ${num(p.ppp,3)} | eFG%: ${num(p.efg,1)}%
+    `;
+  }catch(e){}
+};
+
+document.addEventListener("DOMContentLoaded", mtV3SetHeaders);
+/* ===================== FIN V3 DEFINITIVA ===================== */
+</script>
+
+
+<script>
+/* ============================================================
+   MT PRO BÁSQUET - V4 ESTABLE
+   Corrección específica: +/- negativo en PDF CABB/GesDeportiva.
+   No rompe la lectura original de jugadores: solo mejora normalización
+   de signos negativos separados o en formato soft-hyphen.
+   ============================================================ */
+
+function mtV4NormalizeSigns(value){
+  return String(value ?? "")
+    // Incluye: soft hyphen, non-breaking hyphen, figure dash, en dash, em dash, unicode minus
+    .replace(/[\u00AD\u2010\u2011\u2012\u2013\u2014\u2212]/g, "-")
+    .replace(/\u00A0/g, " ")
+    // PDF.js muchas veces devuelve "- 11"; acá lo unimos a "-11".
+    .replace(/([+-])\s+(\d)/g, "$1$2")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function mtV4SignedInt(value){
+  const s = mtV4NormalizeSigns(value).replace(",", ".");
+  const m = s.match(/[+-]?\d+/);
+  return m ? Number(m[0]) : 0;
+}
+
+function mtV4SignedNumbersAfterTL(line){
+  const normalized = mtV4NormalizeSigns(line);
+  const aiMatches = [...normalized.matchAll(/\d+\s*\/\s*\d+/g)];
+  if(aiMatches.length < 3) return [];
+  const third = aiMatches[2];
+  const tail = mtV4NormalizeSigns(normalized.slice(third.index + third[0].length));
+  return (tail.match(/[+-]?\d+/g) || []).map(mtV4SignedInt);
+}
+
+function mtV4LastSignedNumber(line){
+  const s = mtV4NormalizeSigns(line);
+  const matches = [...s.matchAll(/[+-]?\d+/g)];
+  if(!matches.length) return 0;
+  return mtV4SignedInt(matches[matches.length - 1][0]);
+}
+
+// Reemplazo de funciones base para que todo el HTML siga funcionando igual,
+// pero conservando negativos: -2, -8, -11, etc.
+normalizeStatLine = function(raw){
+  return mtV4NormalizeSigns(raw)
+    .replace(/\bO\s*\/\s*O\b/g,"0/0")
+    .replace(/\bO\s*\/\s*(\d+)\b/g,"0/$1")
+    .replace(/\b(\d+)\s*\/\s*O\b/g,"$1/0")
+    .replace(/(\d)\s*\/\s*(\d)/g,"$1/$2")
+    .replace(/\s+/g," ")
+    .trim();
+};
+
+parseSignedIntToken = function(x){
+  return mtV4SignedInt(x);
+};
+
+getStatsAfterTL = function(line, tlToken){
+  return mtV4SignedNumbersAfterTL(line);
+};
+
+function mtV4BuildRow({gameId, source, team, player, min, minDecimal, pts, t2, t3, tl, afterTL, rawLine}){
+  // Orden posterior al TL: TL%, DEF, OF, Tot, AST, REC, PER, TAP TC, TAP TR, FC, FR, VAL, +/-.
+  const rd    = afterTL.length >= 2  ? afterTL[1]  : 0;
+  const ro    = afterTL.length >= 3  ? afterTL[2]  : 0;
+  const reb   = afterTL.length >= 4  ? afterTL[3]  : (rd + ro);
+  const ast   = afterTL.length >= 5  ? afterTL[4]  : 0;
+  const rec   = afterTL.length >= 6  ? afterTL[5]  : 0;
+  const per   = afterTL.length >= 7  ? afterTL[6]  : 0;
+  const tapTC = afterTL.length >= 8  ? afterTL[7]  : 0;
+  const tapTR = afterTL.length >= 9  ? afterTL[8]  : 0;
+  const fc    = afterTL.length >= 10 ? afterTL[9]  : 0;
+  const fr    = afterTL.length >= 11 ? afterTL[10] : 0;
+  const val   = afterTL.length >= 12 ? afterTL[11] : 0;
+
+  // El +/- es la última columna real de la fila.
+  // Si el PDF lo trae como "- 11", mtV4LastSignedNumber lo convierte a -11.
+  const pm = rawLine ? mtV4LastSignedNumber(rawLine) : (afterTL.length >= 13 ? afterTL[12] : 0);
+
+  return {
+    gameId, source, team, player,
+    min, minDecimal, pts,
+    t2m:t2.made, t2a:t2.att,
+    t3m:t3.made, t3a:t3.att,
+    tlm:tl.made, tla:tl.att,
+    rd, ro, reb, ast, rec, per, tapTC, tapTR, fc, fr, val,
+    pm: mtV4SignedInt(pm),
+    pmRaw: mtV4SignedInt(pm)
+  };
+}
+
+parseGame = function(lines, fileName){
+  let currentTeam = null;
+  const teamsInGame = [];
+  const players = [];
+  const gameId = fileName + "_" + Math.random().toString(36).slice(2,8);
+
+  for(const raw of lines){
+    let line = normalizeStatLine(raw);
+    const upperLine = line.toUpperCase();
+
+    const looksLikeTeam =
+      line.length > 3 &&
+      /[A-ZÁÉÍÓÚÑa-záéíóúñ]/.test(line) &&
+      !/^\d+\s+/.test(line) &&
+      !/\d{1,3}:\d{2}/.test(line) &&
+      !(line.match(/\d+\/\d+/g)||[]).length &&
+      !line.includes(":") &&
+      !upperLine.includes("CONFEDER") &&
+      !upperLine.includes("ESTADÍSTICAS") &&
+      !upperLine.includes("CABB") &&
+      !upperLine.includes("LIGA") &&
+      !upperLine.includes("FASE") &&
+      !upperLine.includes("MINIMIX") &&
+      !upperLine.includes("GESDEPORTIVA") &&
+      !upperLine.includes("INDALWEB") &&
+      !upperLine.includes("NOMBRE") &&
+      !upperLine.includes("TC 2P") &&
+      !upperLine.includes("TC 3P") &&
+      !upperLine.includes("REBOTES") &&
+      !upperLine.includes("TOTALES") &&
+      !upperLine.includes("ENTRENADOR") &&
+      !upperLine.includes(" VS ");
+
+    if(looksLikeTeam){
+      currentTeam = line.trim();
+      if(!teamsInGame.includes(currentTeam)) teamsInGame.push(currentTeam);
+      continue;
+    }
+
+    if(!currentTeam) continue;
+
+    const ai = line.match(/\d+\s*\/\s*\d+/g);
+    if(!ai || ai.length < 3) continue;
+
+    const t2 = splitAI(ai[0].replace(/\s+/g,""));
+    const t3 = splitAI(ai[1].replace(/\s+/g,""));
+    const tl = splitAI(ai[2].replace(/\s+/g,""));
+    const afterTL = mtV4SignedNumbersAfterTL(line);
+
+    if(line.startsWith("TOTALES")){
+      const minMatch = line.match(/\b\d{1,3}:\d{2}\b/);
+      let pts = 0;
+      if(minMatch){
+        const afterMin = line.slice(line.indexOf(minMatch[0]) + minMatch[0].length).trim();
+        const ptsMatch = afterMin.match(/^[+-]?\d+/);
+        pts = ptsMatch ? mtV4SignedInt(ptsMatch[0]) : 0;
+      }
+      const row = mtV4BuildRow({
+        gameId, source:fileName, team:currentTeam, player:"TOTAL EQUIPO",
+        min:"200:00", minDecimal:200, pts, t2, t3, tl, afterTL, rawLine:line
+      });
+      addAgg(allTeams, currentTeam, row);
+      continue;
+    }
+
+    if(/^\d+\s+/.test(line) && /\d{1,3}:\d{2}/.test(line)){
+      const minMatch = line.match(/\b\d{1,3}:\d{2}\b/);
+      if(!minMatch) continue;
+
+      const beforeMin = line.slice(0, line.indexOf(minMatch[0])).trim();
+      const afterMin = line.slice(line.indexOf(minMatch[0]) + minMatch[0].length).trim();
+
+      const name = beforeMin
+        .replace(/^\d+\s+/, "")
+        .replace(/^\*/, "")
+        .replace(/\s*\(CAP\)\s*/g, "")
+        .trim();
+
+      const ptsMatch = afterMin.match(/^[+-]?\d+/);
+      const pts = ptsMatch ? mtV4SignedInt(ptsMatch[0]) : 0;
+
+      players.push(mtV4BuildRow({
+        gameId, source:fileName, team:currentTeam, player:name,
+        min:minMatch[0], minDecimal:minToDecimal(minMatch[0]),
+        pts, t2, t3, tl, afterTL, rawLine:line
+      }));
+    }
+  }
+
+  return {players, teamsInGame};
+};
+
+function mtV4FmtPM(v){
+  const n = mtV4SignedInt(v);
+  if(n > 0) return "+" + n;
+  if(n < 0) return String(n);
+  return "0";
+}
+
+function mtV4ClassPM(v){
+  const n = mtV4SignedInt(v);
+  if(n > 0) return "badge-positive";
+  if(n < 0) return "badge-negative";
+  return "";
+}
+
+// Sobrescribe los formateadores de la V3 si existen.
+if(typeof mtV3SignedNumber !== "undefined") mtV3SignedNumber = mtV4SignedInt;
+if(typeof mtV3FmtPM !== "undefined") mtV3FmtPM = mtV4FmtPM;
+if(typeof mtV3ClassPM !== "undefined") mtV3ClassPM = mtV4ClassPM;
+
+// Refuerza agregados: no convierte negativos en positivos.
+const mtV4OldGetSelectedRows = getSelectedRows;
+getSelectedRows = function(){
+  if(Array.isArray(allPlayers)){
+    allPlayers.forEach(p=>{
+      p.pm = mtV4SignedInt(p.pmRaw !== undefined ? p.pmRaw : p.pm);
+    });
+  }
+  const result = mtV4OldGetSelectedRows();
+  result.players.forEach(p=>p.pm = mtV4SignedInt(p.pm));
+  result.teams.forEach(t=>t.pm = mtV4SignedInt(t.pm));
+  return result;
+};
+
+const mtV4OldGetAllAggregatedRows = getAllAggregatedRows;
+getAllAggregatedRows = function(){
+  if(Array.isArray(allPlayers)){
+    allPlayers.forEach(p=>{
+      p.pm = mtV4SignedInt(p.pmRaw !== undefined ? p.pmRaw : p.pm);
+    });
+  }
+  const result = mtV4OldGetAllAggregatedRows();
+  result.players.forEach(p=>p.pm = mtV4SignedInt(p.pm));
+  result.teams.forEach(t=>t.pm = mtV4SignedInt(t.pm));
+  return result;
+};
+
+/* ===================== FIN V4 ESTABLE ===================== */
+</script>
+
+
+<script>
+/* ===== MT PRO: FILTRO POR EQUIPO + COMPARATIVA INDIVIDUAL ===== */
+function mtGetTeamsFromAggregates(){
+  const {players} = getAllAggregatedRows();
+  return [...new Set(players.map(p=>p.team).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+}
+
+function mtGetPlayersByTeam(team){
+  const {players} = getAllAggregatedRows();
+  return players
+    .filter(p => !team || p.team === team)
+    .slice()
+    .sort((a,b)=>a.player.localeCompare(b.player));
+}
+
+function mtSetOptions(selectId, items, placeholder, getValue, getText){
+  const select = $(selectId);
+  if(!select) return;
+  const previous = select.value;
+  select.innerHTML = `<option value="">${placeholder}</option>`;
+  items.forEach(item=>{
+    const opt = document.createElement('option');
+    opt.value = getValue(item);
+    opt.textContent = getText(item);
+    select.appendChild(opt);
+  });
+  if([...select.options].some(o=>o.value===previous)) select.value = previous;
+}
+
+function populatePlayerTeamSelect(){
+  mtSetOptions('playerTeamSelect', mtGetTeamsFromAggregates(), 'Seleccionar equipo', t=>t, t=>t);
+}
+
+function populatePlayerSelect(){
+  const team = $('playerTeamSelect') ? $('playerTeamSelect').value : '';
+  const list = mtGetPlayersByTeam(team);
+  mtSetOptions(
+    'playerSelect',
+    list,
+    team ? 'Seleccionar jugador' : 'Primero seleccioná un equipo',
+    p=>p.team + '||' + p.player,
+    p=>p.player
+  );
+}
+
+function populateCompareTeamSelects(){
+  const teams = mtGetTeamsFromAggregates();
+  mtSetOptions('compareTeam1', teams, 'Seleccionar equipo', t=>t, t=>t);
+  mtSetOptions('compareTeam2', teams, 'Seleccionar equipo', t=>t, t=>t);
+}
+
+function populateComparePlayerSelect(slot){
+  const team = $(`compareTeam${slot}`) ? $(`compareTeam${slot}`).value : '';
+  const list = mtGetPlayersByTeam(team);
+  mtSetOptions(
+    `comparePlayer${slot}`,
+    list,
+    team ? 'Seleccionar jugador' : 'Primero seleccioná un equipo',
+    p=>p.team + '||' + p.player,
+    p=>p.player
+  );
+}
+
+function mtPMClass(v){
+  const n = Number(v || 0);
+  if(n > 0) return 'badge-positive';
+  if(n < 0) return 'badge-negative';
+  return '';
+}
+
+function mtPMText(v){
+  const n = Number(v || 0);
+  if(n > 0) return '+' + n;
+  return String(n);
+}
+
+function mtPlayerStatHTML(p){
+  const reb = p.reb || ((p.rd || 0) + (p.ro || 0));
+  return `
+    <div class="player-stat-box">
+      <b>${p.player}</b><br>
+      Equipo: ${p.team}
+      <div class="player-stat-grid">
+        <div><span>PJ:</span> ${p.gamesCount || 1}</div>
+        <div><span>MIN:</span> ${num(p.min,1)}</div>
+        <div><span>PTS:</span> ${p.pts}</div>
+        <div><span>2P:</span> ${p.t2m}/${p.t2a} (${num(pct(p.t2m,p.t2a),1)}%)</div>
+        <div><span>3P:</span> ${p.t3m}/${p.t3a} (${num(pct(p.t3m,p.t3a),1)}%)</div>
+        <div><span>TL:</span> ${p.tlm}/${p.tla} (${num(pct(p.tlm,p.tla),1)}%)</div>
+        <div><span>RD:</span> ${p.rd || 0}</div>
+        <div><span>RO:</span> ${p.ro || 0}</div>
+        <div><span>REB:</span> ${reb}</div>
+        <div><span>AST:</span> ${p.ast || 0}</div>
+        <div><span>REC:</span> ${p.rec || 0}</div>
+        <div><span>PER:</span> ${p.per || 0}</div>
+        <div><span>TAP TC:</span> ${p.tapTC || 0}</div>
+        <div><span>TAP TR:</span> ${p.tapTR || 0}</div>
+        <div><span>FC:</span> ${p.fc || 0}</div>
+        <div><span>FR:</span> ${p.fr || 0}</div>
+        <div><span>VAL:</span> ${p.val || 0}</div>
+        <div><span>+/-:</span> <b class="${mtPMClass(p.pm)}">${mtPMText(p.pm)}</b></div>
+        <div><span>Plays:</span> ${num(p.plays,1)}</div>
+        <div><span>PPP:</span> ${num(p.ppp,3)}</div>
+        <div><span>eFG%:</span> ${num(p.efg,1)}%</div>
+        <div><span>% Plays 1P:</span> ${num(p.fin1,1)}%</div>
+        <div><span>% Plays 2P:</span> ${num(p.fin2,1)}%</div>
+        <div><span>% Plays 3P:</span> ${num(p.fin3,1)}%</div>
+      </div>
+    </div>
+  `;
+}
+
+function mtRenderPlayerPie(canvasId, chartKey, p){
+  if(charts[chartKey]) charts[chartKey].destroy();
+  const pts1 = p ? (p.tlm || 0) : 0;
+  const pts2 = p ? (p.t2m || 0) * 2 : 0;
+  const pts3 = p ? (p.t3m || 0) * 3 : 0;
+  const total = pts1 + pts2 + pts3;
+  const canvas = $(canvasId);
+  if(!canvas) return;
+  charts[chartKey] = new Chart(canvas, {
+    type:'pie',
+    data:{
+      labels:['Puntos desde TL','Puntos de 2','Puntos de 3'],
+      datasets:[{data: total ? [pts1, pts2, pts3] : [1,0,0]}]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{labels:{color:'#fff'}},
+        tooltip:{callbacks:{label:(ctx)=>{
+          const value = ctx.parsed;
+          const percentage = total ? (value / total * 100) : 0;
+          return `${ctx.label}: ${value} pts (${num(percentage,1)}%)`;
+        }}}
+      }
+    }
+  });
+}
+
+renderSelectedPlayerChart = function(){
+  const key = $('playerSelect') ? $('playerSelect').value : '';
+  const info = $('playerInfo');
+  const {players} = getAllAggregatedRows();
+  const p = players.find(x => (x.team + '||' + x.player) === key);
+
+  if(!p){
+    if(info) info.textContent = 'Todavía no se seleccionó ningún jugador.';
+    mtRenderPlayerPie('chartPlayerPie', 'playerPie', null);
+    return;
+  }
+
+  if(info) info.innerHTML = mtPlayerStatHTML(p);
+  mtRenderPlayerPie('chartPlayerPie', 'playerPie', p);
+};
+
+function renderComparePlayer(slot){
+  const key = $(`comparePlayer${slot}`) ? $(`comparePlayer${slot}`).value : '';
+  const info = $(`compareInfo${slot}`);
+  const {players} = getAllAggregatedRows();
+  const p = players.find(x => (x.team + '||' + x.player) === key);
+
+  if(!p){
+    if(info) info.textContent = 'Seleccioná equipo y jugador para comparar.';
+    mtRenderPlayerPie(`chartComparePie${slot}`, `comparePie${slot}`, null);
+    return;
+  }
+
+  if(info) info.innerHTML = mtPlayerStatHTML(p);
+  mtRenderPlayerPie(`chartComparePie${slot}`, `comparePie${slot}`, p);
+}
+
+const mtOldRenderDashboardIndividual = renderDashboard;
+renderDashboard = function(){
+  const {teams, players} = getSelectedRows();
+  const main = teams[0] || calcRow({pts:0,t2m:0,t2a:0,t3m:0,t3a:0,tlm:0,tla:0,per:0});
+
+  $('mPlays').textContent = num(main.plays,1);
+  $('mPts').textContent = main.pts || 0;
+  $('mPPP').textContent = num(main.ppp,3);
+  $('mEFG').textContent = num(main.efg,1) + '%';
+
+  renderTeamTable(teams);
+  renderPlayerTable(players);
+  renderCharts(main);
+  populatePlayerTeamSelect();
+  populatePlayerSelect();
+  populateCompareTeamSelects();
+  populateComparePlayerSelect(1);
+  populateComparePlayerSelect(2);
+  renderComparisons();
+  renderSideBySideTables(teams, players);
+  renderSelectedPlayerChart();
+  renderComparePlayer(1);
+  renderComparePlayer(2);
+};
+/* ===== FIN MT PRO: FILTRO POR EQUIPO + COMPARATIVA INDIVIDUAL ===== */
+</script>
+
+
+<script>
+/* ============================================================
+   PATCH FINAL: +/- editable y comparación con barras horizontales
+   ============================================================ */
+
+function mtPatchSigned(v){
+  if(v === undefined || v === null || v === "") return 0;
+  const s = String(v)
+    .replace(/[\u00AD\u2010\u2011\u2012\u2013\u2014\u2212]/g, "-")
+    .replace(/\u00A0/g, " ")
+    .replace(/([+-])\s+(\d)/g, "$1$2")
+    .replace(",", ".")
+    .trim();
+  const m = s.match(/[+-]?\d+/);
+  return m ? Number(m[0]) : 0;
+}
+
+function mtPatchFmtPM(v){
+  const n = mtPatchSigned(v);
+  if(n > 0) return "+" + n;
+  if(n < 0) return String(n);
+  return "0";
+}
+
+function mtPatchClassPM(v){
+  const n = mtPatchSigned(v);
+  if(n > 0) return "badge-positive";
+  if(n < 0) return "badge-negative";
+  return "";
+}
+
+function mtPatchInvertPM(playerName, teamName){
+  if(!Array.isArray(allPlayers)) return;
+  allPlayers.forEach(p=>{
+    if(p.player === playerName && p.team === teamName){
+      const fixed = -mtPatchSigned(p.pm);
+      p.pm = fixed;
+      p.pmRaw = fixed;
+    }
+  });
+  renderDashboard();
+}
+
+/* Doble clic sobre cualquier +/- de jugador para cambiar + por - o - por +.
+   Esto sirve cuando el PDF viene mal leído y perdió el signo menos. */
+document.addEventListener("dblclick", function(e){
+  const el = e.target.closest("[data-pm-player]");
+  if(!el) return;
+  const player = el.getAttribute("data-pm-player");
+  const team = el.getAttribute("data-pm-team");
+  mtPatchInvertPM(player, team);
+});
+
+/* Botón rápido en cada tarjeta individual para cambiar el signo del +/- */
+function mtPatchPMButton(r){
+  return `<button class="secondary" style="padding:5px 8px;margin-left:8px;font-size:11px"
+    onclick="mtPatchInvertPM('${String(r.player).replace(/'/g,"\\'")}', '${String(r.team).replace(/'/g,"\\'")}')">
+    Cambiar signo +/-
+  </button>`;
+}
+
+function mtPatchPlayerHTML(r){
+  const pm = mtPatchSigned(r.pm);
+  return `
+    <div style="border:1px solid rgba(0,212,255,.28);border-radius:14px;padding:14px;margin-bottom:14px">
+      <b>${r.player}</b><br>
+      Equipo: ${r.team}<br><br>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 26px;line-height:1.8">
+        <div>PJ: ${r.gamesCount || 1}</div><div>MIN: ${num(r.min,1)}</div>
+        <div>PTS: ${r.pts}</div><div>2P: ${r.t2m}/${r.t2a} (${num(pct(r.t2m,r.t2a),1)}%)</div>
+        <div>3P: ${r.t3m}/${r.t3a} (${num(pct(r.t3m,r.t3a),1)}%)</div><div>TL: ${r.tlm}/${r.tla} (${num(pct(r.tlm,r.tla),1)}%)</div>
+        <div>RD: ${r.rd || 0}</div><div>RO: ${r.ro || 0}</div>
+        <div>REB: ${r.reb || ((r.rd||0)+(r.ro||0))}</div><div>AST: ${r.ast || 0}</div>
+        <div>REC: ${r.rec || 0}</div><div>PER: ${r.per || 0}</div>
+        <div>TAP TC: ${r.tapTC || 0}</div><div>TAP TR: ${r.tapTR || 0}</div>
+        <div>FC: ${r.fc || 0}</div><div>FR: ${r.fr || 0}</div>
+        <div>VAL: ${r.val || 0}</div>
+        <div>+/-:
+          <span data-pm-player="${r.player}" data-pm-team="${r.team}" class="${mtPatchClassPM(pm)}" title="Doble clic para cambiar signo">
+            ${mtPatchFmtPM(pm)}
+          </span>
+          ${mtPatchPMButton(r)}
+        </div>
+        <div>Plays: ${num(r.plays,1)}</div><div>PPP: ${num(r.ppp,3)}</div>
+        <div>eFG%: ${num(r.efg,1)}%</div><div>% Plays 1P: ${num(r.fin1,1)}%</div>
+        <div>% Plays 2P: ${num(r.fin2,1)}%</div><div>% Plays 3P: ${num(r.fin3,1)}%</div>
+      </div>
+    </div>
+  `;
+}
+
+/* Reemplaza tortas en comparación de jugadores por gráficos de barras horizontales */
+function mtPatchHorizontalComparisonChart(canvasId, r){
+  const canvas = document.getElementById(canvasId);
+  if(!canvas || !r) return;
+
+  destroyChart(canvasId);
+
+  charts[canvasId] = new Chart(canvas, {
+    type: "bar",
+    data: {
+      labels: ["PTS", "REB", "AST", "REC", "PER", "VAL", "+/-", "PPP x10", "eFG%"],
+      datasets: [{
+        label: r.player,
+        data: [
+          Number(r.pts || 0),
+          Number(r.reb || ((r.rd||0)+(r.ro||0))),
+          Number(r.ast || 0),
+          Number(r.rec || 0),
+          Number(r.per || 0),
+          Number(r.val || 0),
+          mtPatchSigned(r.pm),
+          Number((r.ppp || 0) * 10),
+          Number(r.efg || 0)
+        ]
+      }]
+    },
+    options: {
+      indexAxis: "y",
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {display:false},
+        tooltip: {enabled:true}
+      },
+      scales: {
+        x: {ticks:{color:"#cfe7f7"}, grid:{color:"rgba(255,255,255,.08)"}},
+        y: {ticks:{color:"#cfe7f7"}, grid:{color:"rgba(255,255,255,.05)"}}
+      }
+    }
+  });
+}
+
+/* Intercepta funciones típicas de comparación si existen */
+if(typeof renderPlayerCompare === "function"){
+  const oldRenderPlayerCompare = renderPlayerCompare;
+  renderPlayerCompare = function(){
+    oldRenderPlayerCompare();
+    try{
+      const {players} = getAllAggregatedRows();
+      const ids = ["comparePlayer1","comparePlayer2","playerCompare1","playerCompare2"];
+      const cids = ["compareChart1","compareChart2","playerCompareChart1","playerCompareChart2"];
+      ids.forEach((sid, i)=>{
+        const sel = document.getElementById(sid);
+        if(!sel || !sel.value) return;
+        const p = players.find(x => (x.team + "||" + x.player) === sel.value || x.player === sel.value);
+        if(p) mtPatchHorizontalComparisonChart(cids[i], p);
+      });
+    }catch(e){}
+  };
+}
+
+/* Si tus ventanas comparativas usan estos IDs, fuerza barras horizontales */
+function mtPatchForceCompareBars(){
+  try{
+    const {players} = getAllAggregatedRows();
+    const selectIds = ["comparePlayer1","comparePlayer2","playerCompare1","playerCompare2","compareSelect1","compareSelect2"];
+    const chartIds = ["compareChart1","compareChart2","playerCompareChart1","playerCompareChart2","compareCanvas1","compareCanvas2"];
+    selectIds.forEach((sid, i)=>{
+      const sel = document.getElementById(sid);
+      const canvas = document.getElementById(chartIds[i]);
+      if(!sel || !canvas || !sel.value) return;
+      const p = players.find(x => (x.team + "||" + x.player) === sel.value || x.player === sel.value);
+      if(p) mtPatchHorizontalComparisonChart(chartIds[i], p);
+    });
+  }catch(e){}
+}
+document.addEventListener("change", mtPatchForceCompareBars);
+setInterval(mtPatchForceCompareBars, 1500);
+
+/* Asegura que las tablas muestren el signo editable */
+function mtPatchPMCells(){
+  document.querySelectorAll("table tbody tr").forEach(tr=>{
+    const ths = Array.from(tr.closest("table").querySelectorAll("thead th")).map(th=>th.textContent.trim());
+    const pmIndex = ths.indexOf("+/-");
+    const playerIndex = ths.findIndex(h => h.toLowerCase().includes("jugador"));
+    const teamIndex = ths.findIndex(h => h.toLowerCase().includes("equipo"));
+    if(pmIndex < 0 || playerIndex < 0 || teamIndex < 0) return;
+    const cells = tr.children;
+    if(!cells[pmIndex] || cells[pmIndex].dataset.pmReady === "1") return;
+    const player = cells[playerIndex].textContent.trim();
+    const team = cells[teamIndex].textContent.trim();
+    const value = mtPatchSigned(cells[pmIndex].textContent.trim());
+    cells[pmIndex].dataset.pmReady = "1";
+    cells[pmIndex].innerHTML = `<span data-pm-player="${player}" data-pm-team="${team}" class="${mtPatchClassPM(value)}" title="Doble clic para cambiar signo">${mtPatchFmtPM(value)}</span>`;
+  });
+}
+setInterval(mtPatchPMCells, 1000);
+
+/* Si el PDF perdió el signo, el usuario puede corregirlo sin tocar código:
+   doble clic sobre el +/- o botón "Cambiar signo +/-" en la ficha individual. */
+</script>
+
+
+<style>
+/* ===== AJUSTE VISUAL COMPARATIVA INDIVIDUAL ===== */
+.player-compare-grid{
+  display:grid !important;
+  grid-template-columns:1fr 1fr !important;
+  gap:22px !important;
+  align-items:stretch !important;
+}
+.player-compare-grid .card{
+  min-height:640px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.player-compare-grid h3{
+  margin-top:0;
+  font-size:22px;
+}
+.player-compare-grid label{
+  margin-top:4px;
+  display:block;
+}
+.player-compare-grid select{
+  width:100%;
+  margin:6px 0 2px 0;
+}
+.player-compare-grid canvas{
+  margin-top:10px;
+  height:360px !important;
+  max-height:360px !important;
+}
+.player-stat-box{
+  margin-top:10px !important;
+  padding:14px !important;
+  border:1px solid rgba(0,212,255,.22) !important;
+  border-radius:16px !important;
+  background:rgba(2,9,19,.35) !important;
+}
+.player-stat-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  gap:7px 18px !important;
+}
+.badge-positive{color:#23c483 !important;font-weight:900}
+.badge-negative{color:#ff4040 !important;font-weight:900}
+@media(max-width:1000px){
+  .player-compare-grid{grid-template-columns:1fr !important;}
+}
+</style>
+
+<script>
+/* ============================================================
+   FIX FINAL SOLICITADO:
+   1) Comparativa individual con barras horizontales.
+   2) +/- sin símbolo + en positivos.
+   3) Positivos verde, negativos rojo.
+   4) Parser refuerzo: conserva '-' del PDF cuando viene como soft hyphen/unicode.
+   ============================================================ */
+
+function mtFinalSignNormalize(value){
+  return String(value ?? "")
+    .replace(/[\u00AD\u2010\u2011\u2012\u2013\u2014\u2212]/g, "-")
+    .replace(/\u00A0/g, " ")
+    .replace(/([+-])\s+(\d)/g, "$1$2")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function mtFinalSignedInt(value){
+  const s = mtFinalSignNormalize(value).replace(",", ".");
+  const m = s.match(/[+-]?\d+/);
+  return m ? Number(m[0]) : 0;
+}
+
+function mtFinalPMText(value){
+  const n = mtFinalSignedInt(value);
+  return String(n); // sin símbolo + en positivos; negativos conservan "-"
+}
+
+function mtFinalPMClass(value){
+  const n = mtFinalSignedInt(value);
+  if(n > 0) return "badge-positive";
+  if(n < 0) return "badge-negative";
+  return "";
+}
+
+/* Sobrescribe formateadores previos para sacar el + */
+if(typeof mtPMText !== "undefined") mtPMText = mtFinalPMText;
+if(typeof mtPMClass !== "undefined") mtPMClass = mtFinalPMClass;
+if(typeof mtPatchFmtPM !== "undefined") mtPatchFmtPM = mtFinalPMText;
+if(typeof mtPatchClassPM !== "undefined") mtPatchClassPM = mtFinalPMClass;
+if(typeof mtV4SignedInt !== "undefined") mtV4SignedInt = mtFinalSignedInt;
+
+/* Parser reforzado: toma el +/- como el último número real de la fila original. */
+function mtFinalNumbersAfterTL(line){
+  const normalized = mtFinalSignNormalize(line);
+  const ai = [...normalized.matchAll(/\d+\s*\/\s*\d+/g)];
+  if(ai.length < 3) return [];
+  const third = ai[2];
+  const tail = mtFinalSignNormalize(normalized.slice(third.index + third[0].length));
+  return (tail.match(/[+-]?\d+/g) || []).map(mtFinalSignedInt);
+}
+
+function mtFinalLastSignedNumber(line){
+  const normalized = mtFinalSignNormalize(line);
+  const matches = [...normalized.matchAll(/[+-]?\d+/g)];
+  if(!matches.length) return 0;
+  return mtFinalSignedInt(matches[matches.length - 1][0]);
+}
+
+normalizeStatLine = function(raw){
+  return mtFinalSignNormalize(raw)
+    .replace(/\bO\s*\/\s*O\b/g,"0/0")
+    .replace(/\bO\s*\/\s*(\d+)\b/g,"0/$1")
+    .replace(/\b(\d+)\s*\/\s*O\b/g,"$1/0")
+    .replace(/(\d)\s*\/\s*(\d)/g,"$1/$2")
+    .replace(/\s+/g," ")
+    .trim();
+};
+
+parseSignedIntToken = function(x){
+  return mtFinalSignedInt(x);
+};
+
+getStatsAfterTL = function(line, tlToken){
+  return mtFinalNumbersAfterTL(line);
+};
+
+/* Reemplazo estable del parseGame: respeta signos negativos si el PDF los trae. */
+parseGame = function(lines, fileName){
+  let currentTeam = null;
+  const teamsInGame = [];
+  const players = [];
+  const gameId = fileName + "_" + Math.random().toString(36).slice(2,8);
+
+  for(const raw of lines){
+    const rawLine = mtFinalSignNormalize(raw);
+    let line = normalizeStatLine(rawLine);
+    const upperLine = line.toUpperCase();
+
+    const looksLikeTeam =
+      line.length > 3 &&
+      /[A-ZÁÉÍÓÚÑa-záéíóúñ]/.test(line) &&
+      !/^\d+\s+/.test(line) &&
+      !/\d{1,3}:\d{2}/.test(line) &&
+      !(line.match(/\d+\/\d+/g)||[]).length &&
+      !line.includes(":") &&
+      !upperLine.includes("CONFEDER") &&
+      !upperLine.includes("ESTADÍSTICAS") &&
+      !upperLine.includes("CABB") &&
+      !upperLine.includes("LIGA") &&
+      !upperLine.includes("FASE") &&
+      !upperLine.includes("MINIMIX") &&
+      !upperLine.includes("GESDEPORTIVA") &&
+      !upperLine.includes("INDALWEB") &&
+      !upperLine.includes("NOMBRE") &&
+      !upperLine.includes("TC 2P") &&
+      !upperLine.includes("TC 3P") &&
+      !upperLine.includes("REBOTES") &&
+      !upperLine.includes("TOTALES") &&
+      !upperLine.includes("ENTRENADOR") &&
+      !upperLine.includes(" VS ");
+
+    if(looksLikeTeam){
+      currentTeam = line.trim();
+      if(!teamsInGame.includes(currentTeam)) teamsInGame.push(currentTeam);
+      continue;
+    }
+
+    if(!currentTeam) continue;
+
+    const ai = line.match(/\d+\s*\/\s*\d+/g);
+    if(!ai || ai.length < 3) continue;
+
+    const t2 = splitAI(ai[0].replace(/\s+/g,""));
+    const t3 = splitAI(ai[1].replace(/\s+/g,""));
+    const tl = splitAI(ai[2].replace(/\s+/g,""));
+    const afterTL = mtFinalNumbersAfterTL(line);
+
+    const makeRow = ({player, min, minDecimal, pts}) => {
+      const rd    = afterTL.length >= 2  ? afterTL[1]  : 0;
+      const ro    = afterTL.length >= 3  ? afterTL[2]  : 0;
+      const reb   = afterTL.length >= 4  ? afterTL[3]  : (rd + ro);
+      const ast   = afterTL.length >= 5  ? afterTL[4]  : 0;
+      const rec   = afterTL.length >= 6  ? afterTL[5]  : 0;
+      const per   = afterTL.length >= 7  ? afterTL[6]  : 0;
+      const tapTC = afterTL.length >= 8  ? afterTL[7]  : 0;
+      const tapTR = afterTL.length >= 9  ? afterTL[8]  : 0;
+      const fc    = afterTL.length >= 10 ? afterTL[9]  : 0;
+      const fr    = afterTL.length >= 11 ? afterTL[10] : 0;
+      const val   = afterTL.length >= 12 ? afterTL[11] : 0;
+      const pm    = mtFinalLastSignedNumber(line);
+
+      return {
+        gameId, source:fileName, team:currentTeam, player,
+        min, minDecimal, pts,
+        t2m:t2.made, t2a:t2.att,
+        t3m:t3.made, t3a:t3.att,
+        tlm:tl.made, tla:tl.att,
+        rd, ro, reb, ast, rec, per, tapTC, tapTR, fc, fr, val,
+        pm, pmRaw:pm
+      };
+    };
+
+    if(line.startsWith("TOTALES")){
+      const minMatch = line.match(/\b\d{1,3}:\d{2}\b/);
+      let pts = 0;
+      if(minMatch){
+        const afterMin = line.slice(line.indexOf(minMatch[0]) + minMatch[0].length).trim();
+        const ptsMatch = afterMin.match(/^[+-]?\d+/);
+        pts = ptsMatch ? mtFinalSignedInt(ptsMatch[0]) : 0;
+      }
+      addAgg(allTeams, currentTeam, makeRow({
+        player:"TOTAL EQUIPO",
+        min:"200:00",
+        minDecimal:200,
+        pts
+      }));
+      continue;
+    }
+
+    if(/^\d+\s+/.test(line) && /\d{1,3}:\d{2}/.test(line)){
+      const minMatch = line.match(/\b\d{1,3}:\d{2}\b/);
+      if(!minMatch) continue;
+
+      const beforeMin = line.slice(0, line.indexOf(minMatch[0])).trim();
+      const afterMin = line.slice(line.indexOf(minMatch[0]) + minMatch[0].length).trim();
+
+      const name = beforeMin
+        .replace(/^\d+\s+/, "")
+        .replace(/^\*/, "")
+        .replace(/\s*\(CAP\)\s*/g, "")
+        .trim();
+
+      const ptsMatch = afterMin.match(/^[+-]?\d+/);
+      const pts = ptsMatch ? mtFinalSignedInt(ptsMatch[0]) : 0;
+
+      players.push(makeRow({
+        player:name,
+        min:minMatch[0],
+        minDecimal:minToDecimal(minMatch[0]),
+        pts
+      }));
+    }
+  }
+
+  return {players, teamsInGame};
+};
+
+/* Refuerza agregación de +/- con signo. */
+const mtFinalOldGetSelectedRows = getSelectedRows;
+getSelectedRows = function(){
+  if(Array.isArray(allPlayers)){
+    allPlayers.forEach(p=>{
+      p.pm = mtFinalSignedInt(p.pmRaw !== undefined ? p.pmRaw : p.pm);
+    });
+  }
+  const result = mtFinalOldGetSelectedRows();
+  result.players.forEach(p=>p.pm = mtFinalSignedInt(p.pm));
+  result.teams.forEach(t=>t.pm = mtFinalSignedInt(t.pm));
+  return result;
+};
+
+const mtFinalOldGetAllAggregatedRows = getAllAggregatedRows;
+getAllAggregatedRows = function(){
+  if(Array.isArray(allPlayers)){
+    allPlayers.forEach(p=>{
+      p.pm = mtFinalSignedInt(p.pmRaw !== undefined ? p.pmRaw : p.pm);
+    });
+  }
+  const result = mtFinalOldGetAllAggregatedRows();
+  result.players.forEach(p=>p.pm = mtFinalSignedInt(p.pm));
+  result.teams.forEach(t=>t.pm = mtFinalSignedInt(t.pm));
+  return result;
+};
+
+/* Tarjeta más armónica */
+mtPlayerStatHTML = function(p){
+  const reb = p.reb || ((p.rd || 0) + (p.ro || 0));
+  return `
+    <div class="player-stat-box">
+      <b>${p.player}</b><br>
+      <span>Equipo:</span> ${p.team}
+      <div class="player-stat-grid">
+        <div><span>PJ:</span> ${p.gamesCount || 1}</div>
+        <div><span>MIN:</span> ${num(p.min,1)}</div>
+        <div><span>PTS:</span> ${p.pts}</div>
+        <div><span>2P:</span> ${p.t2m}/${p.t2a} (${num(pct(p.t2m,p.t2a),1)}%)</div>
+        <div><span>3P:</span> ${p.t3m}/${p.t3a} (${num(pct(p.t3m,p.t3a),1)}%)</div>
+        <div><span>TL:</span> ${p.tlm}/${p.tla} (${num(pct(p.tlm,p.tla),1)}%)</div>
+        <div><span>RD:</span> ${p.rd || 0}</div>
+        <div><span>RO:</span> ${p.ro || 0}</div>
+        <div><span>REB:</span> ${reb}</div>
+        <div><span>AST:</span> ${p.ast || 0}</div>
+        <div><span>REC:</span> ${p.rec || 0}</div>
+        <div><span>PER:</span> ${p.per || 0}</div>
+        <div><span>TAP TC:</span> ${p.tapTC || 0}</div>
+        <div><span>TAP TR:</span> ${p.tapTR || 0}</div>
+        <div><span>FC:</span> ${p.fc || 0}</div>
+        <div><span>FR:</span> ${p.fr || 0}</div>
+        <div><span>VAL:</span> ${p.val || 0}</div>
+        <div><span>+/-:</span> <b class="${mtFinalPMClass(p.pm)}">${mtFinalPMText(p.pm)}</b></div>
+        <div><span>Plays:</span> ${num(p.plays,1)}</div>
+        <div><span>PPP:</span> ${num(p.ppp,3)}</div>
+        <div><span>eFG%:</span> ${num(p.efg,1)}%</div>
+        <div><span>% Plays 1P:</span> ${num(p.fin1,1)}%</div>
+        <div><span>% Plays 2P:</span> ${num(p.fin2,1)}%</div>
+        <div><span>% Plays 3P:</span> ${num(p.fin3,1)}%</div>
+      </div>
+    </div>
+  `;
+};
+
+/* Barras horizontales para comparación individual */
+function mtRenderCompareBars(canvasId, chartKey, p){
+  if(charts[chartKey]) charts[chartKey].destroy();
+  const canvas = $(canvasId);
+  if(!canvas) return;
+
+  const data = p ? [
+    Number(p.pts || 0),
+    Number(p.reb || ((p.rd||0)+(p.ro||0))),
+    Number(p.ast || 0),
+    Number(p.rec || 0),
+    Number(p.per || 0),
+    Number(p.val || 0),
+    mtFinalSignedInt(p.pm),
+    Number((p.ppp || 0) * 10),
+    Number(p.efg || 0)
+  ] : [0,0,0,0,0,0,0,0,0];
+
+  charts[chartKey] = new Chart(canvas, {
+    type:"bar",
+    data:{
+      labels:["PTS","REB","AST","REC","PER","VAL","+/-","PPP x10","eFG%"],
+      datasets:[{
+        label:p ? p.player : "Sin jugador",
+        data
+      }]
+    },
+    options:{
+      indexAxis:"y",
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{labels:{color:"#fff"}},
+        tooltip:{callbacks:{label:(ctx)=>`${ctx.label}: ${num(ctx.parsed.x,2)}`}}
+      },
+      scales:{
+        x:{ticks:{color:"#fff"}, grid:{color:"rgba(255,255,255,.08)"}},
+        y:{ticks:{color:"#fff"}, grid:{color:"rgba(255,255,255,.08)"}}
+      }
+    }
+  });
+}
+
+renderComparePlayer = function(slot){
+  const key = $(`comparePlayer${slot}`) ? $(`comparePlayer${slot}`).value : "";
+  const info = $(`compareInfo${slot}`);
+  const {players} = getAllAggregatedRows();
+  const p = players.find(x => (x.team + "||" + x.player) === key);
+
+  if(!p){
+    if(info) info.textContent = "Seleccioná equipo y jugador para comparar.";
+    mtRenderCompareBars(`chartComparePie${slot}`, `comparePie${slot}`, null);
+    return;
+  }
+
+  if(info) info.innerHTML = mtPlayerStatHTML(p);
+  mtRenderCompareBars(`chartComparePie${slot}`, `comparePie${slot}`, p);
+};
+
+/* Colorea la columna +/- de todas las tablas y elimina el símbolo + */
+function mtColorPMTables(){
+  document.querySelectorAll("table").forEach(table=>{
+    const headers = Array.from(table.querySelectorAll("thead th")).map(th=>th.textContent.trim());
+    const pmIndex = headers.indexOf("+/-");
+    if(pmIndex < 0) return;
+
+    table.querySelectorAll("tbody tr").forEach(tr=>{
+      const cell = tr.children[pmIndex];
+      if(!cell) return;
+      const n = mtFinalSignedInt(cell.textContent);
+      cell.className = mtFinalPMClass(n);
+      cell.textContent = mtFinalPMText(n);
+    });
+  });
+}
+
+setInterval(mtColorPMTables, 700);
+/* ===================== FIN FIX FINAL SOLICITADO ===================== */
+</script>
+
+
+<script>
+/* ============================================================
+   LECTOR PDF + EXCEL
+   Permite cargar PDFs CABB/GesDeportiva e .xlsx/.xls en la misma carga.
+   ============================================================ */
+
+function isExcelFile(file){
+  const name = (file && file.name || "").toLowerCase();
+  const type = (file && file.type || "").toLowerCase();
+  return /\.(xlsx|xls)$/i.test(name) ||
+         type.includes("spreadsheet") ||
+         type.includes("excel");
+}
+
+function mtExcelNum(v){
+  if(v === undefined || v === null || v === "") return 0;
+  const s = String(v)
+    .replace(/[\u00AD\u2010\u2011\u2012\u2013\u2014\u2212]/g, "-")
+    .replace(",", ".")
+    .trim();
+  const n = Number(s);
+  if(Number.isFinite(n)) return n;
+  const m = s.match(/[+-]?\d+(?:\.\d+)?/);
+  return m ? Number(m[0]) : 0;
+}
+
+function mtExcelAI(v){
+  const m = String(v || "0/0").match(/(\d+)\s*\/\s*(\d+)/);
+  return m ? {made:Number(m[1]), att:Number(m[2])} : {made:0, att:0};
+}
+
+function mtExcelCleanText(v){
+  return String(v ?? "")
+    .replace(/\u00A0/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function mtExcelIsTeamRow(row){
+  const a = mtExcelCleanText(row[0]);
+  const b = mtExcelCleanText(row[1]);
+  if(!a) return false;
+  const u = a.toUpperCase();
+  if(u.includes("CONFEDER") || u.includes("ESTADÍSTICAS") || u.includes("ENTRENADOR")) return false;
+  if(u === "NUM." || u === "NOMBRE" || u === "TOTALES") return false;
+  if(/\d/.test(a)) return false;
+  // En el Excel de CABB la fila de equipo viene en la columna A y el resto casi vacío.
+  return !b && a.length > 2;
+}
+
+function mtExcelMakeRow({gameId, source, team, row, isTotal=false}){
+  const t2 = mtExcelAI(row[4]);
+  const t3 = mtExcelAI(row[6]);
+  const tl = mtExcelAI(row[8]);
+
+  const player = isTotal ? "TOTAL EQUIPO" : mtExcelCleanText(row[1]).replace(/^\*/,"").replace(/\s*\(CAP\)\s*/gi,"").trim();
+  const min = mtExcelCleanText(row[2] || "0:00");
+
+  return {
+    gameId,
+    source,
+    team,
+    player,
+    min,
+    minDecimal:minToDecimal(min),
+    pts:mtExcelNum(row[3]),
+    t2m:t2.made, t2a:t2.att,
+    t3m:t3.made, t3a:t3.att,
+    tlm:tl.made, tla:tl.att,
+    rd:mtExcelNum(row[10]),
+    ro:mtExcelNum(row[11]),
+    reb:mtExcelNum(row[12]),
+    ast:mtExcelNum(row[13]),
+    rec:mtExcelNum(row[14]),
+    per:mtExcelNum(row[15]),
+    tapTC:mtExcelNum(row[16]),
+    tapTR:mtExcelNum(row[17]),
+    fc:mtExcelNum(row[18]),
+    fr:mtExcelNum(row[19]),
+    val:mtExcelNum(row[20]),
+    pm:mtExcelNum(row[21]),
+    pmRaw:mtExcelNum(row[21])
+  };
+}
+
+async function excelToParsed(file){
+  if(!window.XLSX){
+    throw new Error("No se cargó la librería XLSX. Revisá la conexión a internet.");
+  }
+
+  const buffer = await file.arrayBuffer();
+  const wb = XLSX.read(buffer, {type:"array", cellDates:false});
+  const players = [];
+  const teamsInGame = [];
+  const gameId = file.name + "_excel_" + Math.random().toString(36).slice(2,8);
+
+  wb.SheetNames.forEach(sheetName=>{
+    const ws = wb.Sheets[sheetName];
+    const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:"", raw:false});
+    let currentTeam = null;
+
+    rows.forEach(row=>{
+      row = row || [];
+      if(mtExcelIsTeamRow(row)){
+        currentTeam = mtExcelCleanText(row[0]);
+        if(!teamsInGame.includes(currentTeam)) teamsInGame.push(currentTeam);
+        return;
+      }
+
+      if(!currentTeam) return;
+
+      const name = mtExcelCleanText(row[1]);
+      const min = mtExcelCleanText(row[2]);
+      const pts = mtExcelCleanText(row[3]);
+
+      if(name.toUpperCase() === "TOTALES"){
+        const totalRow = mtExcelMakeRow({gameId, source:file.name + " / " + sheetName, team:currentTeam, row, isTotal:true});
+        addAgg(allTeams, currentTeam, totalRow);
+        return;
+      }
+
+      // Fila válida de jugador: número + nombre + MIN + PTS.
+      if(row[0] !== "" && name && /^\d{1,3}:\d{2}$/.test(min) && pts !== ""){
+        players.push(mtExcelMakeRow({
+          gameId,
+          source:file.name + " / " + sheetName,
+          team:currentTeam,
+          row,
+          isTotal:false
+        }));
+      }
+    });
+  });
+
+  return {players, teamsInGame};
+}
+
+/* Reemplazo del cargador para soportar PDF, imagen y Excel al mismo tiempo. */
+const mtOldInput = document.getElementById("pdfInput");
+if(mtOldInput){
+  const mtNewInput = mtOldInput.cloneNode(true);
+  mtNewInput.accept = ".pdf,.png,.jpg,.jpeg,.webp,.xlsx,.xls,application/pdf,image/*,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel";
+  mtOldInput.parentNode.replaceChild(mtNewInput, mtOldInput);
+
+  mtNewInput.addEventListener("change", async function(e){
+    allPlayers = [];
+    allTeams = {};
+    const files = Array.from(e.target.files || []);
+    $("status").innerHTML = "Procesando archivos PDF/Excel...";
+
+    try{
+      let processed = 0;
+      let images = 0;
+      let pdfs = 0;
+      let excels = 0;
+      let fallbacks = 0;
+
+      for(const file of files){
+        let lines = [];
+        let parsed = {players:[], teamsInGame:[]};
+
+        if(isExcelFile(file)){
+          excels++;
+          $("status").innerHTML = `Leyendo Excel: ${file.name}`;
+          parsed = await excelToParsed(file);
+        }else if(isPdfFile(file)){
+          pdfs++;
+          $("status").innerHTML = `Leyendo PDF: ${file.name}`;
+          lines = await pdfToLines(file);
+          parsed = parseGame(lines, file.name);
+
+          if(parsed.players.length === 0 && parsed.teamsInGame.length === 0){
+            fallbacks++;
+            lines = await pdfToOcrLines(file);
+            parsed = parseGame(lines, file.name + " (OCR)");
+          }
+        }else if(isImageFile(file)){
+          images++;
+          $("status").innerHTML = `Leyendo imagen PNG/JPG: ${file.name}`;
+
+          lines = await imageToPositionedLines(file);
+          parsed = parseGame(lines, file.name + " (imagen OCR por filas)");
+
+          if(!isGoodParse(parsed)){
+            $("status").innerHTML = `Reintentando imagen por celdas: ${file.name}`;
+            parsed = await parseImageTablesAdvanced(file);
+          }
+
+          if(!isGoodParse(parsed)){
+            lines = await imageToLines(file);
+            parsed = parseGame(lines, file.name + " (imagen OCR normal)");
+          }
+
+          if(!isGoodParse(parsed)){
+            console.warn("OCR no válido", file.name, parsed, lines);
+            parsed = {players:[], teamsInGame:[]};
+            $("status").innerHTML = `<span class="warn">No pude detectar una tabla CABB válida en ${file.name}.</span>`;
+          }
+        }else{
+          console.warn("Archivo no soportado", file.name);
+          continue;
+        }
+
+        // MT: LOCAL/VISITANTE se obtiene del orden en el nombre del archivo.
+        // Ejemplo: Racing vs Platense.pdf -> Racing LOCAL / Platense VISITANTE.
+        parsed.players.forEach(p=>{
+          try{
+            p.venue = mtVenueForPlayerFromFilename(file.name, p.team, parsed.teamsInGame);
+          }catch(_venueError){
+            p.venue = "";
+          }
+          p.sourceFile = file.name;
+        });
+
+        // La detección de LOCAL/VISITANTE nunca debe impedir la carga del partido.
+        // Si algún nombre no coincide, el archivo igualmente se procesa normalmente.
+        allPlayers.push(...parsed.players);
+        aggregateTeamsFromPlayersIfNeeded(parsed.players);
+        processed++;
+      }
+
+      const select = $("teamSelect");
+      if(select){
+        select.innerHTML = `<option value="">Seleccionar equipo analizado</option>`;
+        Object.keys(allTeams).sort().forEach(team=>{
+          const opt = document.createElement("option");
+          opt.value = team;
+          opt.textContent = team;
+          select.appendChild(opt);
+        });
+      }
+
+      $("status").innerHTML = `<span class="ok">Carga completa.</span> Archivos: ${processed}. PDFs: ${pdfs}. Excel: ${excels}. Imágenes: ${images}. OCR en PDF: ${fallbacks}. Jugadores detectados: ${allPlayers.length}. Equipos detectados: ${Object.keys(allTeams).length}.`;
+      renderDashboard();
+    }catch(err){
+      console.error(err);
+      $("status").innerHTML = `<span class="warn">Error al procesar.</span> Revisá que el archivo sea PDF, Excel (.xlsx/.xls) o una imagen clara de la planilla.`;
+    }
+  });
+}
+/* ===================== FIN LECTOR PDF + EXCEL ===================== */
+</script>
+
+
+<style>
+/* ===== FECHAS Y COMPARACIÓN VISUAL ===== */
+.date-filter-label{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:4px;
+  color:var(--muted);
+  font-size:12px;
+  font-weight:bold;
+}
+.date-filter-label input{
+  padding:10px 12px;
+  border-radius:10px;
+  border:0;
+  background:#fff;
+  color:#111;
+  font-weight:bold;
+}
+.compare-better{
+  color:#23c483 !important;
+  font-weight:900;
+}
+.compare-worse{
+  color:#ff4040 !important;
+  font-weight:900;
+}
+.compare-equal{
+  color:#f4f7fb !important;
+  font-weight:700;
+}
+.player-stat-grid div{
+  padding:3px 6px;
+  border-radius:8px;
+}
+</style>
+
+<script>
+/* ============================================================
+   PATCH: COMPARATIVA CON VERDE/ROJO + FILTRO POR FECHAS
+   ============================================================ */
+
+function mtDateOnly(d){
+  if(!d) return "";
+  const s = String(d).trim();
+  const m1 = s.match(/(20\d{2})[-_/\.](\d{1,2})[-_/\.](\d{1,2})/);
+  if(m1) return `${m1[1]}-${String(m1[2]).padStart(2,"0")}-${String(m1[3]).padStart(2,"0")}`;
+  const m2 = s.match(/(\d{1,2})[-_/\.](\d{1,2})[-_/\.](20\d{2})/);
+  if(m2) return `${m2[3]}-${String(m2[2]).padStart(2,"0")}-${String(m2[1]).padStart(2,"0")}`;
+  return "";
+}
+
+function mtExtractDateFromText(text){
+  const s = String(text || "");
+  return mtDateOnly(s);
+}
+
+function mtExtractDateFromFileName(name){
+  return mtDateOnly(name || "");
+}
+
+function mtFileDate(fileName, lines){
+  let d = mtExtractDateFromFileName(fileName);
+  if(d) return d;
+  if(Array.isArray(lines)){
+    for(const line of lines){
+      d = mtExtractDateFromText(line);
+      if(d) return d;
+    }
+  }
+  return "";
+}
+
+function mtPassDateFilter(row){
+  const from = document.getElementById("dateFrom")?.value || "";
+  const to = document.getElementById("dateTo")?.value || "";
+  if(!from && !to) return true;
+
+  const d = row.gameDate || row.date || "";
+  if(!d) return true; // si no detecta fecha, no lo elimina
+  if(from && d < from) return false;
+  if(to && d > to) return false;
+  return true;
+}
+
+/* Filtra los datos ya cargados por fecha antes de agregarlos. */
+function mtAggregateFiltered(players){
+  const teamFilter = document.getElementById("teamSelect")?.value || "";
+  const filteredPlayers = (players || []).filter(p=>{
+    if(teamFilter && p.team !== teamFilter) return false;
+    return mtPassDateFilter(p);
+  });
+
+  const map = {};
+  filteredPlayers.forEach(p=>{
+    const key = p.team + "||" + p.player;
+    if(!map[key]){
+      map[key] = {
+        team:p.team, player:p.player, games:new Set(), gamesCount:0,
+        min:0, pts:0, t2m:0,t2a:0,t3m:0,t3a:0,tlm:0,tla:0,
+        rd:0,ro:0,reb:0,ast:0,rec:0,per:0,tapTC:0,tapTR:0,fc:0,fr:0,val:0,pm:0
+      };
+    }
+    const a = map[key];
+    a.games.add(p.gameId);
+    a.min += p.minDecimal || p.min || 0;
+    a.pts += p.pts || 0;
+    a.t2m += p.t2m || 0; a.t2a += p.t2a || 0;
+    a.t3m += p.t3m || 0; a.t3a += p.t3a || 0;
+    a.tlm += p.tlm || 0; a.tla += p.tla || 0;
+    a.rd += p.rd || 0; a.ro += p.ro || 0;
+    a.reb += p.reb || ((p.rd || 0) + (p.ro || 0));
+    a.ast += p.ast || 0; a.rec += p.rec || 0; a.per += p.per || 0;
+    a.tapTC += p.tapTC || 0; a.tapTR += p.tapTR || 0;
+    a.fc += p.fc || 0; a.fr += p.fr || 0; a.val += p.val || 0;
+    a.pm += (typeof mtFinalSignedInt === "function" ? mtFinalSignedInt(p.pm) : Number(p.pm || 0));
+  });
+
+  return Object.values(map).map(r=>{
+    r.gamesCount = r.games.size || 1;
+    return calcRow(r);
+  });
+}
+
+const mtOldGetSelectedRowsDate = getSelectedRows;
+getSelectedRows = function(){
+  const from = document.getElementById("dateFrom")?.value || "";
+  const to = document.getElementById("dateTo")?.value || "";
+  if(!from && !to) return mtOldGetSelectedRowsDate();
+
+  const filteredPlayers = allPlayers.filter(mtPassDateFilter);
+  const oldAllPlayers = allPlayers;
+  const oldAllTeams = allTeams;
+
+  // Reagrega equipos desde jugadores filtrados para respetar fecha.
+  const tempTeams = {};
+  filteredPlayers.forEach(p=>{
+    addAgg(tempTeams, p.team, p);
+  });
+
+  const selectedTeam = document.getElementById("teamSelect")?.value || "";
+  let teams = Object.values(tempTeams).map(r=>{
+    r.gamesCount = r.games.size || 1;
+    return calcRow(r);
+  });
+  let players = mtAggregateFiltered(filteredPlayers);
+
+  if(selectedTeam){
+    teams = teams.filter(t=>t.team === selectedTeam);
+    players = players.filter(p=>p.team === selectedTeam);
+  }
+
+  return {teams, players};
+};
+
+function mtCompareClass(slot, metric, value){
+  const otherSlot = slot === 1 ? 2 : 1;
+  const key = document.getElementById(`comparePlayer${otherSlot}`)?.value || "";
+  if(!key) return "";
+  const {players} = getAllAggregatedRows();
+  const other = players.find(x => (x.team + "||" + x.player) === key);
+  if(!other) return "";
+
+  const lowerIsBetter = ["per","fc"].includes(metric);
+  const a = Number(value || 0);
+  const b = Number(other[metric] || 0);
+  if(a === b) return "compare-equal";
+  const better = lowerIsBetter ? a < b : a > b;
+  return better ? "compare-better" : "compare-worse";
+}
+
+function mtPlayerStatHTMLCompare(p, slot){
+  const reb = p.reb || ((p.rd || 0) + (p.ro || 0));
+  const pmVal = typeof mtFinalSignedInt === "function" ? mtFinalSignedInt(p.pm) : Number(p.pm || 0);
+  const pmClass = pmVal > 0 ? "badge-positive" : (pmVal < 0 ? "badge-negative" : "compare-equal");
+
+  const cell = (label, metric, value, txt=value) =>
+    `<div class="${mtCompareClass(slot, metric, value)}"><span>${label}:</span> ${txt}</div>`;
+
+  return `
+    <div class="player-stat-box">
+      <b>${p.player}</b><br>
+      <span>Equipo:</span> ${p.team}
+      <div class="player-stat-grid">
+        ${cell("PJ","gamesCount",p.gamesCount || 1)}
+        ${cell("MIN","min",p.min,num(p.min,1))}
+        ${cell("PTS","pts",p.pts)}
+        ${cell("2P%","t2m",pct(p.t2m,p.t2a),`${p.t2m}/${p.t2a} (${num(pct(p.t2m,p.t2a),1)}%)`)}
+        ${cell("3P%","t3m",pct(p.t3m,p.t3a),`${p.t3m}/${p.t3a} (${num(pct(p.t3m,p.t3a),1)}%)`)}
+        ${cell("TL%","tlm",pct(p.tlm,p.tla),`${p.tlm}/${p.tla} (${num(pct(p.tlm,p.tla),1)}%)`)}
+        ${cell("RD","rd",p.rd || 0)}
+        ${cell("RO","ro",p.ro || 0)}
+        ${cell("REB","reb",reb)}
+        ${cell("AST","ast",p.ast || 0)}
+        ${cell("REC","rec",p.rec || 0)}
+        ${cell("PER","per",p.per || 0)}
+        ${cell("TAP TC","tapTC",p.tapTC || 0)}
+        ${cell("TAP TR","tapTR",p.tapTR || 0)}
+        ${cell("FC","fc",p.fc || 0)}
+        ${cell("FR","fr",p.fr || 0)}
+        ${cell("VAL","val",p.val || 0)}
+        <div class="${pmClass}"><span>+/-:</span> ${String(pmVal)}</div>
+        ${cell("Plays","plays",p.plays,num(p.plays,1))}
+        ${cell("PPP","ppp",p.ppp,num(p.ppp,3))}
+        ${cell("eFG%","efg",p.efg,`${num(p.efg,1)}%`)}
+        ${cell("% Plays 1P","fin1",p.fin1,`${num(p.fin1,1)}%`)}
+        ${cell("% Plays 2P","fin2",p.fin2,`${num(p.fin2,1)}%`)}
+        ${cell("% Plays 3P","fin3",p.fin3,`${num(p.fin3,1)}%`)}
+      </div>
+    </div>
+  `;
+}
+
+/* Redefine comparación para marcar mejores/peores. */
+const mtOldRenderComparePlayerDate = renderComparePlayer;
+renderComparePlayer = function(slot){
+  const key = document.getElementById(`comparePlayer${slot}`)?.value || "";
+  const info = document.getElementById(`compareInfo${slot}`);
+  const {players} = getAllAggregatedRows();
+  const p = players.find(x => (x.team + "||" + x.player) === key);
+
+  if(!p){
+    if(info) info.textContent = "Seleccioná equipo y jugador para comparar.";
+    if(typeof mtRenderCompareBars === "function"){
+      mtRenderCompareBars(`chartComparePie${slot}`, `comparePie${slot}`, null);
+    }else{
+      mtOldRenderComparePlayerDate(slot);
+    }
+    return;
+  }
+
+  if(info) info.innerHTML = mtPlayerStatHTMLCompare(p, slot);
+  if(typeof mtRenderCompareBars === "function"){
+    mtRenderCompareBars(`chartComparePie${slot}`, `comparePie${slot}`, p);
+  }else{
+    mtOldRenderComparePlayerDate(slot);
+  }
+};
+
+/* Re-renderiza ambos lados cuando cambia uno para actualizar colores relativos. */
+["comparePlayer1","comparePlayer2"].forEach(id=>{
+  document.addEventListener("change", e=>{
+    if(e.target && e.target.id === id){
+      setTimeout(()=>{ renderComparePlayer(1); renderComparePlayer(2); }, 50);
+    }
+  });
+});
+
+/* Agrega fecha detectada al cargar PDF/Excel. */
+const mtOldPdfToLinesDate = pdfToLines;
+pdfToLines = async function(file){
+  const lines = await mtOldPdfToLinesDate(file);
+  const d = mtFileDate(file.name, lines);
+  lines.unshift("FECHA_ARCHIVO_DETECTADA " + d);
+  window.__mtLastFileDate = d;
+  return lines;
+};
+
+const mtOldParseGameDate = parseGame;
+parseGame = function(lines, fileName){
+  const parsed = mtOldParseGameDate(lines, fileName);
+  const d = mtFileDate(fileName, lines);
+  parsed.players.forEach(p=>p.gameDate = d);
+  return parsed;
+};
+
+if(typeof excelToParsed === "function"){
+  const mtOldExcelToParsedDate = excelToParsed;
+  excelToParsed = async function(file){
+    const parsed = await mtOldExcelToParsedDate(file);
+    const d = mtExtractDateFromFileName(file.name) || "";
+    parsed.players.forEach(p=>p.gameDate = d);
+    return parsed;
+  };
+}
+/* ===================== FIN PATCH COMPARATIVA + FECHAS ===================== */
+</script>
+
+
+<style>
+.compare-date-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0 6px}
+.compare-date-label{display:flex;flex-direction:column;gap:5px;color:#b8c9da;font-size:12px;font-weight:800}
+.compare-date-label input{width:100%;height:46px;border-radius:14px;border:2px solid rgba(255,255,255,.92);background:#fff;color:#111;padding:8px 12px;font-weight:900}
+.player-compare-grid .card{padding:22px!important}
+.player-compare-grid select{height:46px;border-radius:14px}
+@media(max-width:620px){.compare-date-row{grid-template-columns:1fr}}
+</style>
+<script>
+function mtCompareDatePass(row, slot){
+  const from = document.getElementById(`compareDateFrom${slot}`)?.value || "";
+  const to = document.getElementById(`compareDateTo${slot}`)?.value || "";
+  if(!from && !to) return true;
+  const d = row.gameDate || row.date || "";
+  if(!d) return true;
+  if(from && d < from) return false;
+  if(to && d > to) return false;
+  return true;
+}
+function mtAggOneComparePlayer(team, player, slot){
+  const selected = (allPlayers || []).filter(p => p.team === team && p.player === player && mtCompareDatePass(p, slot));
+  if(!selected.length) return null;
+  const a = {team, player, games:new Set(), gamesCount:0, min:0, pts:0, t2m:0,t2a:0,t3m:0,t3a:0,tlm:0,tla:0, rd:0,ro:0,reb:0,ast:0,rec:0,per:0,tapTC:0,tapTR:0,fc:0,fr:0,val:0,pm:0};
+  selected.forEach(p=>{
+    a.games.add(p.gameId);
+    a.min += Number(p.minDecimal || p.min || 0);
+    a.pts += Number(p.pts || 0);
+    a.t2m += Number(p.t2m || 0); a.t2a += Number(p.t2a || 0);
+    a.t3m += Number(p.t3m || 0); a.t3a += Number(p.t3a || 0);
+    a.tlm += Number(p.tlm || 0); a.tla += Number(p.tla || 0);
+    a.rd += Number(p.rd || 0); a.ro += Number(p.ro || 0);
+    a.reb += Number(p.reb || ((p.rd || 0) + (p.ro || 0)));
+    a.ast += Number(p.ast || 0); a.rec += Number(p.rec || 0); a.per += Number(p.per || 0);
+    a.tapTC += Number(p.tapTC || 0); a.tapTR += Number(p.tapTR || 0);
+    a.fc += Number(p.fc || 0); a.fr += Number(p.fr || 0); a.val += Number(p.val || 0);
+    a.pm += (typeof mtFinalSignedInt === "function" ? mtFinalSignedInt(p.pm) : Number(p.pm || 0));
+  });
+  a.gamesCount = a.games.size || 1;
+  return calcRow(a);
+}
+function mtGetCompareSelectedPlayer(slot){
+  const key = document.getElementById(`comparePlayer${slot}`)?.value || "";
+  if(!key || !key.includes("||")) return null;
+  const parts = key.split("||");
+  return mtAggOneComparePlayer(parts[0], parts[1], slot);
+}
+function mtCompareClassByOther(slot, metric, value){
+  const other = mtGetCompareSelectedPlayer(slot === 1 ? 2 : 1);
+  if(!other) return "";
+  const lowerIsBetter = ["per","fc"].includes(metric);
+  const a = Number(value || 0), b = Number(other[metric] || 0);
+  if(a === b) return "compare-equal";
+  return (lowerIsBetter ? a < b : a > b) ? "compare-better" : "compare-worse";
+}
+function mtPlayerStatHTMLCompareDates(p, slot){
+  const reb = p.reb || ((p.rd || 0) + (p.ro || 0));
+  const pmVal = typeof mtFinalSignedInt === "function" ? mtFinalSignedInt(p.pm) : Number(p.pm || 0);
+  const pmClass = pmVal > 0 ? "badge-positive" : (pmVal < 0 ? "badge-negative" : "compare-equal");
+  const cell = (label, metric, value, txt=value) => `<div class="${mtCompareClassByOther(slot, metric, value)}"><span>${label}:</span> ${txt}</div>`;
+  return `<div class="player-stat-box">
+    <b>${p.player}</b><br><span>Equipo:</span> ${p.team}<br><span>Partidos dentro del rango:</span> ${p.gamesCount || 1}
+    <div class="player-stat-grid">
+      ${cell("MIN","min",p.min,num(p.min,1))}
+      ${cell("PTS","pts",p.pts)}
+      ${cell("2P%","t2m",pct(p.t2m,p.t2a),`${p.t2m}/${p.t2a} (${num(pct(p.t2m,p.t2a),1)}%)`)}
+      ${cell("3P%","t3m",pct(p.t3m,p.t3a),`${p.t3m}/${p.t3a} (${num(pct(p.t3m,p.t3a),1)}%)`)}
+      ${cell("TL%","tlm",pct(p.tlm,p.tla),`${p.tlm}/${p.tla} (${num(pct(p.tlm,p.tla),1)}%)`)}
+      ${cell("RD","rd",p.rd || 0)}${cell("RO","ro",p.ro || 0)}${cell("REB","reb",reb)}
+      ${cell("AST","ast",p.ast || 0)}${cell("REC","rec",p.rec || 0)}${cell("PER","per",p.per || 0)}
+      ${cell("TAP TC","tapTC",p.tapTC || 0)}${cell("TAP TR","tapTR",p.tapTR || 0)}
+      ${cell("FC","fc",p.fc || 0)}${cell("FR","fr",p.fr || 0)}${cell("VAL","val",p.val || 0)}
+      <div class="${pmClass}"><span>+/-:</span> ${String(pmVal)}</div>
+      ${cell("Plays","plays",p.plays,num(p.plays,1))}
+      ${cell("PPP","ppp",p.ppp,num(p.ppp,3))}
+      ${cell("eFG%","efg",p.efg,`${num(p.efg,1)}%`)}
+      ${cell("% Plays 1P","fin1",p.fin1,`${num(p.fin1,1)}%`)}
+      ${cell("% Plays 2P","fin2",p.fin2,`${num(p.fin2,1)}%`)}
+      ${cell("% Plays 3P","fin3",p.fin3,`${num(p.fin3,1)}%`)}
+    </div></div>`;
+}
+renderComparePlayer = function(slot){
+  const info = document.getElementById(`compareInfo${slot}`);
+  const p = mtGetCompareSelectedPlayer(slot);
+  if(!p){
+    if(info) info.textContent = "Seleccioná equipo, rango de fechas y jugador para comparar.";
+    if(typeof mtRenderCompareBars === "function") mtRenderCompareBars(`chartComparePie${slot}`, `comparePie${slot}`, null);
+    else if(typeof mtRenderPlayerPie === "function") mtRenderPlayerPie(`chartComparePie${slot}`, `comparePie${slot}`, null);
+    return;
+  }
+  if(info) info.innerHTML = mtPlayerStatHTMLCompareDates(p, slot);
+  if(typeof mtRenderCompareBars === "function") mtRenderCompareBars(`chartComparePie${slot}`, `comparePie${slot}`, p);
+  else if(typeof mtRenderPlayerPie === "function") mtRenderPlayerPie(`chartComparePie${slot}`, `comparePie${slot}`, p);
+  const otherSlot = slot === 1 ? 2 : 1;
+  const otherInfo = document.getElementById(`compareInfo${otherSlot}`);
+  const other = mtGetCompareSelectedPlayer(otherSlot);
+  if(other && otherInfo){
+    otherInfo.innerHTML = mtPlayerStatHTMLCompareDates(other, otherSlot);
+    if(typeof mtRenderCompareBars === "function") mtRenderCompareBars(`chartComparePie${otherSlot}`, `comparePie${otherSlot}`, other);
+  }
+};
+["compareDateFrom1","compareDateTo1","compareDateFrom2","compareDateTo2","compareTeam1","compareTeam2","comparePlayer1","comparePlayer2"].forEach(id=>{
+  document.addEventListener("change", e=>{
+    if(e.target && e.target.id === id) setTimeout(()=>{ renderComparePlayer(1); renderComparePlayer(2); }, 40);
+  });
+});
+</script>
+
+
+<script>
+/* ============================================================
+   PROMEDIOS POR EQUIPO: LOCAL / VISITANTE / TODOS
+   La condición se obtiene del nombre del archivo
+   Antes de 'vs' = LOCAL | Después de 'vs' = VISITANTE
+   ============================================================ */
+(function(){
+  const mtAvgSumFields = [
+    "minDecimal","pts","t2m","t2a","t3m","t3a","tlm","tla",
+    "rd","ro","reb","ast","rec","per","tapTC","tapTR","fc","fr","val","pm"
+  ];
+
+  function mtAvgN(v){
+    const n = Number(v);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function mtAvgFmt(v, d=1){
+    const n = mtAvgN(v);
+    return n.toFixed(d);
+  }
+
+  function mtAvgPct(made, att){
+    return att ? (made / att * 100) : 0;
+  }
+
+  function mtAvgEscape(s){
+    return String(s ?? "")
+      .replace(/&/g,"&amp;").replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+
+  function mtAvgAggregate(rows, name, team, divisorGames){
+    const a = {
+      player:name, team,
+      minDecimal:0,pts:0,t2m:0,t2a:0,t3m:0,t3a:0,tlm:0,tla:0,
+      rd:0,ro:0,reb:0,ast:0,rec:0,per:0,tapTC:0,tapTR:0,fc:0,fr:0,val:0,pm:0
+    };
+
+    rows.forEach(r=>{
+      mtAvgSumFields.forEach(k=>{
+        if(k === "pm"){
+          a[k] += (typeof parseSignedIntToken === "function")
+            ? parseSignedIntToken(r[k] || 0)
+            : mtAvgN(r[k]);
+        }else{
+          a[k] += mtAvgN(r[k]);
+        }
+      });
+    });
+
+    const games = Math.max(1, divisorGames || 1);
+    const total = {...a};
+    mtAvgSumFields.forEach(k=> a[k] = a[k] / games);
+
+    // Métricas avanzadas se calculan con los totales del período,
+    // no promediando porcentajes partido a partido.
+    const advanced = (typeof calcRow === "function")
+      ? calcRow({...total, gamesCount:games})
+      : {plays:0,ppp:0,efg:0,fin1:0,fin2:0,fin3:0};
+
+    a.gamesCount = games;
+    a.plays = mtAvgN(advanced.plays) / games;
+    a.ppp = mtAvgN(advanced.ppp);
+    a.efg = mtAvgN(advanced.efg);
+    a.fin1 = mtAvgN(advanced.fin1);
+    a.fin2 = mtAvgN(advanced.fin2);
+    a.fin3 = mtAvgN(advanced.fin3);
+
+    // Los porcentajes de tiro usan conversiones/intentos totales del período.
+    a.t2pct = mtAvgPct(total.t2m,total.t2a);
+    a.t3pct = mtAvgPct(total.t3m,total.t3a);
+    a.tlpct = mtAvgPct(total.tlm,total.tla);
+
+    return a;
+  }
+
+  function mtAvgRowHTML(r, isTeam){
+    const cls = isTeam ? ' class="mt-team-average"' : "";
+    const first = isTeam
+      ? `<b>PROMEDIO EQUIPO — ${mtAvgEscape(r.team)}</b>`
+      : `<span class="mt-player-name">${mtAvgEscape(r.player)}</span>`;
+
+    const pm = mtAvgN(r.pm);
+    const pmClass = pm > 0 ? "badge-positive" : (pm < 0 ? "badge-negative" : "");
+
+    return `<tr${cls}>
+      <td>${first}</td>
+      <td>${r.gamesCount}</td>
+      <td>${mtAvgFmt(r.minDecimal,1)}</td>
+      <td>${mtAvgFmt(r.pts,1)}</td>
+      <td>${mtAvgFmt(r.t2m,1)}/${mtAvgFmt(r.t2a,1)}</td>
+      <td>${mtAvgFmt(r.t2pct,1)}%</td>
+      <td>${mtAvgFmt(r.t3m,1)}/${mtAvgFmt(r.t3a,1)}</td>
+      <td>${mtAvgFmt(r.t3pct,1)}%</td>
+      <td>${mtAvgFmt(r.tlm,1)}/${mtAvgFmt(r.tla,1)}</td>
+      <td>${mtAvgFmt(r.tlpct,1)}%</td>
+      <td>${mtAvgFmt(r.rd,1)}</td>
+      <td>${mtAvgFmt(r.ro,1)}</td>
+      <td>${mtAvgFmt(r.reb,1)}</td>
+      <td>${mtAvgFmt(r.ast,1)}</td>
+      <td>${mtAvgFmt(r.rec,1)}</td>
+      <td>${mtAvgFmt(r.per,1)}</td>
+      <td>${mtAvgFmt(r.tapTC,1)}</td>
+      <td>${mtAvgFmt(r.tapTR,1)}</td>
+      <td>${mtAvgFmt(r.fc,1)}</td>
+      <td>${mtAvgFmt(r.fr,1)}</td>
+      <td>${mtAvgFmt(r.val,1)}</td>
+      <td class="${pmClass}">${mtAvgFmt(pm,1)}</td>
+      <td>${mtAvgFmt(r.plays,1)}</td>
+      <td>${mtAvgFmt(r.ppp,3)}</td>
+      <td>${mtAvgFmt(r.efg,1)}%</td>
+      <td>${mtAvgFmt(r.fin1,1)}%</td>
+      <td>${mtAvgFmt(r.fin2,1)}%</td>
+      <td>${mtAvgFmt(r.fin3,1)}%</td>
+    </tr>`;
+  }
+
+  window.populateVenueAverageTeams = function(){
+    const sel = document.getElementById("avgTeamSelect");
+    if(!sel) return;
+    const current = sel.value;
+    const teams = [...new Set((window.allPlayers || allPlayers || []).map(p=>p.team).filter(Boolean))].sort();
+    sel.innerHTML = '<option value="">Seleccionar equipo</option>';
+    teams.forEach(team=>{
+      const o = document.createElement("option");
+      o.value = team;
+      o.textContent = team;
+      sel.appendChild(o);
+    });
+    if(teams.includes(current)) sel.value = current;
+  };
+
+  window.renderVenueAverages = function(){
+    const teamSel = document.getElementById("avgTeamSelect");
+    const venueSel = document.getElementById("avgVenueSelect");
+    const info = document.getElementById("avgVenueInfo");
+    const tbody = document.querySelector("#avgVenueTable tbody");
+    if(!teamSel || !venueSel || !tbody) return;
+
+    populateVenueAverageTeams();
+
+    const team = teamSel.value;
+    const venue = venueSel.value || "TODOS";
+    tbody.innerHTML = "";
+
+    if(!team){
+      if(info) info.textContent = "Seleccioná un equipo para ver sus promedios.";
+      return;
+    }
+
+    let rows = (window.allPlayers || allPlayers || []).filter(p=>p.team === team);
+
+    // IMPORTANTE:
+    // Para LOCAL/VISITANTE NO dependemos de p.venue.
+    // Miramos directamente el nombre del archivo de cada partido.
+    // Ejemplo:
+    // "Racing vs Platense.pdf"  -> Racing LOCAL / Platense VISITANTE
+    // "Platense vs Racing.pdf" -> Platense LOCAL / Racing VISITANTE
+    if(venue !== "TODOS"){
+      rows = rows.filter(p=>{
+        const sourceName = p.sourceFile || p.source || "";
+        return mtVenueForSelectedTeam(sourceName, team) === venue;
+      });
+    }
+
+    const gameIds = [...new Set(rows.map(p=>p.gameId).filter(Boolean))];
+    if(!rows.length || !gameIds.length){
+      if(info) info.innerHTML = `No hay partidos de <b>${mtAvgEscape(team)}</b> identificados como <b>${venue}</b>. Revisá que los archivos estén nombrados como <b>Equipo Local vs Equipo Visitante</b>, por ejemplo: <b>San Martin vs Racing.pdf</b> para que Racing sea VISITANTE.`;
+      return;
+    }
+
+    const teamAvg = mtAvgAggregate(rows, "PROMEDIO EQUIPO", team, gameIds.length);
+    tbody.insertAdjacentHTML("beforeend", mtAvgRowHTML(teamAvg, true));
+
+    const byPlayer = {};
+    rows.forEach(r=>{
+      const key = r.player || "Sin nombre";
+      if(!byPlayer[key]) byPlayer[key] = [];
+      byPlayer[key].push(r);
+    });
+
+    Object.keys(byPlayer)
+      .sort((a,b)=>a.localeCompare(b))
+      .forEach(player=>{
+        const pr = byPlayer[player];
+        const playerGames = new Set(pr.map(x=>x.gameId).filter(Boolean)).size;
+        const avg = mtAvgAggregate(pr, player, team, playerGames);
+        tbody.insertAdjacentHTML("beforeend", mtAvgRowHTML(avg, false));
+      });
+
+    if(info){
+      info.innerHTML = `<b>${mtAvgEscape(team)}</b> — ${venue} — ${gameIds.length} partido${gameIds.length===1?"":"s"}. La primera fila es el promedio del equipo; debajo aparecen los promedios individuales de los jugadores.`;
+    }
+  };
+
+  // Integra el nuevo cuadro con el render general existente.
+  if(typeof window.renderDashboard === "function"){
+    const mtOriginalRenderDashboard = window.renderDashboard;
+    window.renderDashboard = function(){
+      const result = mtOriginalRenderDashboard.apply(this, arguments);
+      setTimeout(()=>{
+        populateVenueAverageTeams();
+        renderVenueAverages();
+      }, 0);
+      return result;
+    };
+  }
+
+  document.addEventListener("DOMContentLoaded", ()=>{
+    populateVenueAverageTeams();
+    renderVenueAverages();
+  });
+})();
+</script>
+
+
+<script id="mt-workspace-nav-script">
+/* ===== MT PRO: VENTANAS + INFORME DE SCOUTING ===== */
+(function(){
+  const norm = s => String(s || "").trim().toLowerCase();
+
+  function heading(text){
+    return Array.from(document.querySelectorAll("main > h2.section-title"))
+      .find(h => norm(h.textContent).includes(norm(text)));
+  }
+  function mark(el, view){
+    if(!el) return;
+    el.classList.add("mt-view-block");
+    el.dataset.mtView = view;
+  }
+  function markHeadingAndNext(text, view){
+    const h = heading(text);
+    if(!h) return;
+    mark(h, view);
+    mark(h.nextElementSibling, view);
+  }
+
+  window.mtSetWorkspaceView = function(view){
+    const allowed = ["team","individual","compare","scouting"];
+    if(!allowed.includes(view)) view = "team";
+    document.querySelectorAll(".mt-view-block[data-mt-view]").forEach(el=>{
+      el.hidden = el.dataset.mtView !== view;
+    });
+    document.querySelectorAll(".mt-view-btn").forEach(btn=>{
+      btn.classList.toggle("active", btn.dataset.view === view);
+    });
+    try{ localStorage.setItem("mtpro-view", view); }catch(e){}
+    if(view === "scouting"){
+      mtPopulateScoutTeams();
+      mtRenderScouting();
+    }
+    setTimeout(()=>{
+      if(typeof charts !== "undefined" && charts){
+        Object.values(charts).forEach(c=>{ try{ c && c.resize && c.resize(); }catch(e){} });
+      }
+      window.dispatchEvent(new Event("resize"));
+    }, 80);
+  };
+
+  function mtSetupViews(){
+    mark(document.querySelector("main > .top-dashboard"), "team");
+    markHeadingAndNext("comparativas entre equipos", "team");
+    markHeadingAndNext("vista separada", "team");
+    mark(document.querySelector("main > .charts"), "team");
+    markHeadingAndNext("resumen por equipo", "team");
+
+    markHeadingAndNext("análisis individual por jugador", "individual");
+    markHeadingAndNext("resumen por jugador", "individual");
+
+    markHeadingAndNext("comparativa individual entre jugadores", "compare");
+    mark(document.getElementById("mtScoutingSection"), "scouting");
+
+    let saved = "team";
+    try{ saved = localStorage.getItem("mtpro-view") || "team"; }catch(e){}
+    mtSetWorkspaceView(saved);
+  }
+
+  function esc(s){
+    return String(s ?? "").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+  }
+  function n(v){ v = Number(v || 0); return Number.isFinite(v) ? v : 0; }
+  function f(v,d=1){ return n(v).toFixed(d); }
+  function percent(m,a){ return a ? (100*m/a) : 0; }
+
+  function sourceVenue(source, team){
+    if(typeof window.mtVenueForSelectedTeam === "function"){
+      try{ return window.mtVenueForSelectedTeam(source, team); }catch(e){}
+    }
+    let s = String(source || "").replace(/\.[a-z0-9]+$/i,"").replace(/\s*\/.*$/,"").trim();
+    const parts = s.split(/\s+vs\.?\s+/i);
+    if(parts.length < 2) return "DESCONOCIDO";
+    const clean = x => x.replace(/[_-]+/g," ").replace(/\s+/g," ").trim().toLowerCase();
+    const t = clean(team);
+    if(clean(parts[0]).includes(t) || t.includes(clean(parts[0]))) return "LOCAL";
+    if(clean(parts[1]).includes(t) || t.includes(clean(parts[1]))) return "VISITANTE";
+    return "DESCONOCIDO";
+  }
+
+  window.mtPopulateScoutTeams = function(){
+    const sel = document.getElementById("mtScoutTeam");
+    if(!sel) return;
+    const current = sel.value;
+    const playerSource = (typeof allPlayers !== "undefined" && Array.isArray(allPlayers)) ? allPlayers : [];
+    const teams = [...new Set(playerSource.map(p=>p.team).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+    sel.innerHTML = '<option value="">Seleccionar rival</option>';
+    teams.forEach(t=>{
+      const o = document.createElement("option");
+      o.value=t; o.textContent=t; sel.appendChild(o);
+    });
+    if(teams.includes(current)) sel.value=current;
+  };
+
+  function scoutRows(){
+    const team = document.getElementById("mtScoutTeam")?.value || "";
+    const venue = document.getElementById("mtScoutVenue")?.value || "TODOS";
+    const limit = document.getElementById("mtScoutGames")?.value || "ALL";
+    if(!team) return {team, rows:[], games:[]};
+
+    const playerSource = (typeof allPlayers !== "undefined" && Array.isArray(allPlayers)) ? allPlayers : [];
+    let rows = playerSource.filter(p=>p.team === team);
+    if(venue !== "TODOS"){
+      rows = rows.filter(p=>sourceVenue(p.sourceFile || p.source || "", team) === venue);
+    }
+
+    const games = [];
+    const seen = new Set();
+    rows.forEach(p=>{
+      if(p.gameId && !seen.has(p.gameId)){
+        seen.add(p.gameId);
+        games.push(p.gameId);
+      }
+    });
+
+    let selectedGames = games;
+    if(limit !== "ALL"){
+      selectedGames = games.slice(-Math.max(1, Number(limit)||0));
+      const keep = new Set(selectedGames);
+      rows = rows.filter(p=>keep.has(p.gameId));
+    }
+    return {team, rows, games:selectedGames};
+  }
+
+  function aggregateScoutPlayers(rows, gamesCount){
+    const by = {};
+    rows.forEach(p=>{
+      const name = p.player || "Sin nombre";
+      if(!by[name]){
+        by[name] = {player:name,games:new Set(),min:0,pts:0,t2m:0,t2a:0,t3m:0,t3a:0,tlm:0,tla:0,rd:0,ro:0,reb:0,ast:0,rec:0,per:0,val:0,pm:0};
+      }
+      const a=by[name];
+      if(p.gameId) a.games.add(p.gameId);
+      a.min += n(p.minDecimal || p.min);
+      a.pts += n(p.pts);
+      a.t2m += n(p.t2m); a.t2a += n(p.t2a);
+      a.t3m += n(p.t3m); a.t3a += n(p.t3a);
+      a.tlm += n(p.tlm); a.tla += n(p.tla);
+      a.rd += n(p.rd); a.ro += n(p.ro);
+      a.reb += n(p.reb || (n(p.rd)+n(p.ro)));
+      a.ast += n(p.ast); a.rec += n(p.rec); a.per += n(p.per);
+      a.val += n(p.val); a.pm += n(p.pm);
+    });
+    const list = Object.values(by).map(a=>{
+      const gp = a.games.size || gamesCount || 1;
+      const fga = a.t2a+a.t3a;
+      const plays = fga + .44*a.tla + a.per;
+      return {
+        ...a, gp,
+        mpg:a.min/gp,
+        ppg:a.pts/gp,
+        rpg:a.reb/gp,
+        apg:a.ast/gp,
+        topg:a.per/gp,
+        t2pct:percent(a.t2m,a.t2a),
+        t3pct:percent(a.t3m,a.t3a),
+        ftpct:percent(a.tlm,a.tla),
+        efg:fga ? 100*(a.t2m+1.5*a.t3m)/fga : 0,
+        fgaPg:fga/gp,
+        t2aPg:a.t2a/gp,
+        t3aPg:a.t3a/gp,
+        ftaPg:a.tla/gp,
+        playsPg:plays/gp,
+        ppp:plays ? a.pts/plays : 0
+      };
+    });
+
+    const metrics = ["ppg","playsPg","fgaPg","efg","ppp","apg","rpg"];
+    const ranges = {};
+    metrics.forEach(k=>{
+      const vals=list.map(x=>n(x[k]));
+      ranges[k]={min:Math.min(0,...vals),max:Math.max(0,...vals)};
+    });
+    const z = (v,k)=>{
+      const r=ranges[k], d=r.max-r.min;
+      return d ? (n(v)-r.min)/d : 0;
+    };
+    list.forEach(x=>{
+      const turnoverPenalty = Math.min(1, x.topg / Math.max(1,x.playsPg));
+      x.threat = 100 * (
+        .31*z(x.ppg,"ppg") +
+        .21*z(x.playsPg,"playsPg") +
+        .14*z(x.fgaPg,"fgaPg") +
+        .14*z(x.efg,"efg") +
+        .08*z(x.ppp,"ppp") +
+        .07*z(x.apg,"apg") +
+        .05*z(x.rpg,"rpg")
+      ) * (1 - .10*turnoverPenalty);
+    });
+    list.sort((a,b)=>b.threat-a.threat || b.ppg-a.ppg);
+    return list;
+  }
+
+  function teamSummary(players, gamesCount){
+    const s={pts:0,t2m:0,t2a:0,t3m:0,t3a:0,tlm:0,tla:0,reb:0,ast:0,per:0};
+    players.forEach(p=>{
+      s.pts+=p.pts;s.t2m+=p.t2m;s.t2a+=p.t2a;s.t3m+=p.t3m;s.t3a+=p.t3a;
+      s.tlm+=p.tlm;s.tla+=p.tla;s.reb+=p.reb;s.ast+=p.ast;s.per+=p.per;
+    });
+    const gp=Math.max(1,gamesCount);
+    const fga=s.t2a+s.t3a;
+    const plays=fga+.44*s.tla+s.per;
+    return {
+      ppg:s.pts/gp, reb:s.reb/gp, ast:s.ast/gp, tov:s.per/gp,
+      efg:fga?100*(s.t2m+1.5*s.t3m)/fga:0,
+      t2pct:percent(s.t2m,s.t2a), t3pct:percent(s.t3m,s.t3a),
+      ppp:plays?s.pts/plays:0, t3share:fga?100*s.t3a/fga:0
+    };
+  }
+
+  function typeAndAdvice(p){
+    const tags=[];
+    const advice=[];
+    if(p.t3aPg >= Math.max(3, p.t2aPg*.8)){
+      tags.push("Tirador exterior");
+      advice.push("Negar recepciones limpias y perseguirlo en salidas; evitar ayudas largas desde su lado.");
+    }
+    if(p.t2aPg > p.t3aPg*1.35 && p.t2pct >= 50){
+      tags.push("Finalizador de 2P");
+      advice.push("Cerrar primera línea de penetración y forzar finalizaciones más lejos del aro.");
+    }
+    if(p.ftaPg >= 4){
+      tags.push("Genera faltas");
+      advice.push("Defender vertical, sin manos innecesarias, y mostrar ayudas tempranas antes de que llegue a zona de falta.");
+    }
+    if(p.apg >= 4){
+      tags.push("Generador");
+      advice.push("Presionar su lectura de pase y variar coberturas para quitarle comodidad como creador.");
+    }
+    if(p.rpg >= 7){
+      tags.push("Reboteador");
+      advice.push("Asignar contacto de bloqueo apenas sale el tiro; no liberar al defensor antes de asegurar rebote.");
+    }
+    if(p.efg < 43 && p.fgaPg >= 7){
+      tags.push("Alto volumen / baja eficiencia");
+      advice.push("Aceptar tiros contestados de baja eficiencia antes que sobreayudar y liberar a mejores finalizadores.");
+    }
+    if(!tags.length){
+      tags.push("Amenaza equilibrada");
+      advice.push("Defensa disciplinada: quitar su primera opción y obligarlo a producir fuera de sus zonas más eficientes.");
+    }
+    return {tag:tags[0], advice:[...new Set(advice)]};
+  }
+
+  function priorityClass(i, threat){
+    if(i < 2 || threat >= 75) return ["high","ALTA"];
+    if(i < 5 || threat >= 48) return ["mid","MEDIA"];
+    return ["low","BAJA"];
+  }
+
+  window.mtRenderScouting = function(){
+    mtPopulateScoutTeams();
+    const info=document.getElementById("mtScoutInfo");
+    const sumEl=document.getElementById("mtScoutSummary");
+    const rankEl=document.getElementById("mtScoutRanking");
+    const planEl=document.getElementById("mtScoutPlan");
+    if(!info||!sumEl||!rankEl||!planEl) return;
+
+    const {team,rows,games}=scoutRows();
+    if(!team){
+      info.textContent="Cargá partidos y seleccioná un rival.";
+      sumEl.innerHTML="";
+      rankEl.className="mt-scout-empty"; rankEl.innerHTML="Todavía no hay un rival seleccionado.";
+      planEl.className="mt-scout-empty"; planEl.innerHTML="El informe se genera automáticamente con los datos cargados.";
+      return;
+    }
+    if(!rows.length || !games.length){
+      info.innerHTML=`No hay partidos disponibles de <b>${esc(team)}</b> con esos filtros.`;
+      sumEl.innerHTML="";
+      rankEl.className="mt-scout-empty"; rankEl.innerHTML="Sin datos para este filtro.";
+      planEl.className="mt-scout-empty"; planEl.innerHTML="Probá TODOS o cargá más partidos del rival.";
+      return;
+    }
+
+    const players=aggregateScoutPlayers(rows,games.length);
+    const ts=teamSummary(players,games.length);
+    const venue=document.getElementById("mtScoutVenue")?.value || "TODOS";
+    info.innerHTML=`<b>${esc(team)}</b> — ${esc(venue)} — muestra de <b>${games.length}</b> partido${games.length===1?"":"s"}. Ranking calculado sólo con estadísticas de los partidos cargados.`;
+
+    sumEl.innerHTML=`
+      <div class="mt-scout-summary">
+        <div class="mt-scout-metric"><div class="k">PTS / partido</div><div class="v">${f(ts.ppg,1)}</div></div>
+        <div class="mt-scout-metric"><div class="k">PPP estimado</div><div class="v">${f(ts.ppp,3)}</div></div>
+        <div class="mt-scout-metric"><div class="k">eFG%</div><div class="v">${f(ts.efg,1)}%</div></div>
+        <div class="mt-scout-metric"><div class="k">3PA / tiros de campo</div><div class="v">${f(ts.t3share,1)}%</div></div>
+      </div>`;
+
+    rankEl.className="";
+    rankEl.innerHTML = players.map((p,i)=>{
+      const [pc,pt]=priorityClass(i,p.threat);
+      const ta=typeAndAdvice(p);
+      return `
+      <div class="mt-scout-player">
+        <div class="mt-scout-rank">#${i+1}</div>
+        <div>
+          <div class="mt-scout-name">${esc(p.player)}</div>
+          <div class="mt-scout-sub">${esc(ta.tag)} · ${p.gp} PJ</div>
+          <span class="mt-priority ${pc}">● PRIORIDAD ${pt}</span>
+          <div class="mt-threatbar"><i style="width:${Math.max(4,Math.min(100,p.threat))}%"></i></div>
+        </div>
+        <div class="mt-scout-stat"><b>${f(p.ppg,1)}</b><span>PTS</span></div>
+        <div class="mt-scout-stat"><b>${f(p.efg,1)}%</b><span>eFG</span></div>
+        <div class="mt-scout-stat"><b>${f(p.t3pct,1)}%</b><span>3P</span></div>
+        <div class="mt-scout-stat mt-hide-sm"><b>${f(p.fgaPg,1)}</b><span>TCI</span></div>
+        <div class="mt-scout-stat mt-hide-md mt-hide-sm"><b>${f(p.apg,1)}</b><span>AST</span></div>
+        <div class="mt-scout-stat mt-hide-md mt-hide-sm"><b>${f(p.rpg,1)}</b><span>REB</span></div>
+      </div>`;
+    }).join("");
+
+    const top=players.slice(0,Math.min(4,players.length));
+    let general=[];
+    if(ts.t3share >= 38) general.push(`El rival tiene perfil exterior: ${f(ts.t3share,1)}% de sus intentos de campo son de 3 puntos. Priorizar closeouts cortos y controlados.`);
+    else general.push(`El rival tiene mayor peso en 2P: sólo ${f(ts.t3share,1)}% de sus tiros de campo son triples. Proteger pintura sin regalar tiros abiertos.`);
+    if(ts.tov >= 14) general.push(`Promedia ${f(ts.tov,1)} pérdidas: hay margen para subir presión sobre primera recepción y líneas de pase.`);
+    if(ts.efg >= 52) general.push(`eFG% alto (${f(ts.efg,1)}%): no conviene conceder tiros en ritmo; la calidad del primer closeout es prioritaria.`);
+    if(ts.reb >= 35) general.push(`Carga importante de rebote (${f(ts.reb,1)} por partido): terminar cada defensa con bloqueo de rebote.`);
+
+    planEl.className="";
+    planEl.innerHTML = `
+      ${top.map((p,i)=>{
+        const ta=typeAndAdvice(p);
+        return `<div class="mt-scout-top-card">
+          <strong>#${i+1} ${esc(p.player)}</strong> — ${f(p.ppg,1)} PTS · ${f(p.efg,1)}% eFG · ${f(p.playsPg,1)} Plays
+          <div class="why"><b>Lectura:</b> ${esc(ta.tag)}. ${esc(ta.advice[0])}</div>
+        </div>`;
+      }).join("")}
+      <h3 style="margin-top:18px">TENDENCIAS DEL EQUIPO</h3>
+      <ul class="mt-scout-rec">${general.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
+      <p class="status" style="margin-top:14px"><b>Importante:</b> estas sugerencias se basan en box score. No sustituyen el análisis de video para coberturas de P&amp;R, salidas, poste bajo o acciones específicas.</p>
+    `;
+  };
+
+  window.mtPrintScouting = function(){
+    document.body.classList.add("mt-print-scouting");
+    window.print();
+    setTimeout(()=>document.body.classList.remove("mt-print-scouting"),300);
+  };
+
+  const oldRender = window.renderDashboard;
+  if(typeof oldRender === "function"){
+    window.renderDashboard = function(){
+      const r=oldRender.apply(this,arguments);
+      setTimeout(()=>{ mtPopulateScoutTeams(); if(document.querySelector('.mt-view-btn[data-view="scouting"].active')) mtRenderScouting(); },0);
+      return r;
+    };
+  }
+
+  document.addEventListener("DOMContentLoaded", ()=>{
+    mtSetupViews();
+    mtPopulateScoutTeams();
+  });
+})();
+</script>
+
+
+<script id="mt-scouting-refresh-fix">
+/* FIX: refresca la lista de rivales usando la variable global léxica allPlayers */
+(function(){
+  function refreshScout(){
+    try{
+      if(typeof mtPopulateScoutTeams === "function") mtPopulateScoutTeams();
+      const active = document.querySelector('.mt-view-btn[data-view="scouting"].active');
+      if(active && typeof mtRenderScouting === "function") mtRenderScouting();
+    }catch(e){
+      console.warn("MT scouting refresh:", e);
+    }
+  }
+
+  // Refresco periódico liviano: detecta equipos cargados sin interferir con la lectura de archivos.
+  let lastCount = -1;
+  setInterval(function(){
+    try{
+      const count = (typeof allPlayers !== "undefined" && Array.isArray(allPlayers)) ? allPlayers.length : 0;
+      if(count !== lastCount){
+        lastCount = count;
+        refreshScout();
+      }
+    }catch(e){}
+  }, 500);
+
+  document.addEventListener("change", function(e){
+    if(e.target && e.target.id === "pdfInput"){
+      setTimeout(refreshScout, 800);
+      setTimeout(refreshScout, 1800);
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
