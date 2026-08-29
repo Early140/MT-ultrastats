@@ -968,6 +968,30 @@ main{
 }
 </style>
 
+
+<style id="mt-advanced-stats-styles">
+/* ===== MT PRO: ESTADÍSTICAS AVANZADAS ===== */
+#mtAdvancedSection{margin-top:8px;}
+.mt-adv-intro{text-align:center;max-width:1080px;margin:0 auto 18px!important;line-height:1.55;}
+.mt-adv-formulas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:18px;}
+.mt-adv-formulas>div{padding:14px;border-radius:14px;border:1px solid rgba(0,212,255,.16);background:rgba(2,9,19,.30);}
+.mt-adv-formulas b{display:block;color:var(--accent);font-size:12px;letter-spacing:.55px;margin-bottom:7px;}
+.mt-adv-formulas span{color:#dbe8f4;font-size:13px;line-height:1.45;}
+.mt-adv-controls{max-width:520px;margin:0 auto 18px;}
+.mt-adv-controls label{display:flex;flex-direction:column;gap:8px;color:#c8d9e9;font-size:13px;}
+.mt-adv-controls select{width:100%;min-width:0;}
+.mt-adv-four-grid,.mt-adv-rating-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:20px;}
+.mt-adv-factor{position:relative;overflow:hidden;min-height:205px;}
+.mt-adv-factor:after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:.8;}
+.mt-adv-weight{display:inline-block;margin-bottom:13px;padding:5px 8px;border-radius:999px;background:rgba(0,212,255,.12);border:1px solid rgba(0,212,255,.25);color:#72e9ff;font-size:10px;font-weight:900;letter-spacing:.5px;}
+#mtAdvTable td:first-child,#mtAdvTable th:first-child{position:sticky;left:0;z-index:2;background:#0b2032;}
+#mtAdvTable th:first-child{z-index:4;background:#061321;}
+#mtAdvTable tbody tr.mt-adv-selected td{background:rgba(0,212,255,.10);font-weight:800;}
+#mtAdvTable tbody tr.mt-adv-selected td:first-child{background:#0d2b40;color:var(--accent);}
+@media(max-width:1100px){.mt-adv-four-grid,.mt-adv-rating-grid{grid-template-columns:1fr 1fr}.mt-adv-formulas{grid-template-columns:1fr;}}
+@media(max-width:650px){.mt-adv-four-grid,.mt-adv-rating-grid{grid-template-columns:1fr}.mt-view-nav{grid-template-columns:1fr 1fr!important;}}
+</style>
+
 </head>
 
 <body>
@@ -981,9 +1005,9 @@ main{
 
 <nav class="mt-view-nav" aria-label="Ventanas de análisis">
   <button type="button" class="mt-view-btn active" data-view="team" onclick="mtSetWorkspaceView('team')">EQUIPO</button>
-  <button type="button" class="mt-view-btn" data-view="individual" onclick="mtSetWorkspaceView('individual')">INDIVIDUAL</button>
-  <button type="button" class="mt-view-btn" data-view="compare" onclick="mtSetWorkspaceView('compare')">COMPARACIONES<br>INDIVIDUALES</button>
+  <button type="button" class="mt-view-btn" data-view="individual" onclick="mtSetWorkspaceView('individual')">INDIVIDUAL Y<br>COMPARACIONES</button>
   <button type="button" class="mt-view-btn" data-view="scouting" onclick="mtSetWorkspaceView('scouting')">INFORME DE<br>SCOUTING</button>
+  <button type="button" class="mt-view-btn" data-view="advanced" onclick="mtSetWorkspaceView('advanced')">ESTATS<br>AVANZADAS</button>
 </nav>
 
   </div>
@@ -1087,6 +1111,14 @@ main{
             <option value="TODOS">TODOS</option>
             <option value="LOCAL">LOCAL</option>
             <option value="VISITANTE">VISITANTE</option>
+          </select>
+        </label>
+
+        <label class="status"><b>Resultado</b>
+          <select id="avgResultSelect" onchange="renderVenueAverages()">
+            <option value="TODOS">TODOS</option>
+            <option value="GANADOS">GANADOS</option>
+            <option value="PERDIDOS">PERDIDOS</option>
           </select>
         </label>
       </div>
@@ -1203,6 +1235,45 @@ main{
       <canvas id="chartComparePie2"></canvas>
     </div>
   </section>
+
+
+<h2 class="section-title mt-view-block" data-mt-view="team">Comparación entre equipos</h2>
+<section id="mtTeamCompareSection" class="team-compare-grid mt-view-block" data-mt-view="team">
+  <div class="card team-compare-card">
+    <h3>EQUIPO 1</h3>
+    <label class="status"><b>Equipo</b></label>
+    <select id="teamCompareSelect1" onchange="mtRenderTeamComparison()">
+      <option value="">Seleccionar equipo</option>
+    </select>
+    <div class="compare-date-row">
+      <label class="compare-date-label">Fecha inicio
+        <input type="date" id="teamCompareDateFrom1" onchange="mtRenderTeamComparison()" />
+      </label>
+      <label class="compare-date-label">Fecha finalización
+        <input type="date" id="teamCompareDateTo1" onchange="mtRenderTeamComparison()" />
+      </label>
+    </div>
+    <div id="teamCompareInfo1" class="status">Seleccioná un equipo para comparar.</div>
+    <canvas id="chartTeamCompare1"></canvas>
+  </div>
+  <div class="card team-compare-card">
+    <h3>EQUIPO 2</h3>
+    <label class="status"><b>Equipo</b></label>
+    <select id="teamCompareSelect2" onchange="mtRenderTeamComparison()">
+      <option value="">Seleccionar equipo</option>
+    </select>
+    <div class="compare-date-row">
+      <label class="compare-date-label">Fecha inicio
+        <input type="date" id="teamCompareDateFrom2" onchange="mtRenderTeamComparison()" />
+      </label>
+      <label class="compare-date-label">Fecha finalización
+        <input type="date" id="teamCompareDateTo2" onchange="mtRenderTeamComparison()" />
+      </label>
+    </div>
+    <div id="teamCompareInfo2" class="status">Seleccioná un equipo para comparar.</div>
+    <canvas id="chartTeamCompare2"></canvas>
+  </div>
+</section>
 
 <h2 class="section-title">Vista separada: equipo y jugadores</h2>
   <section class="split-view">
@@ -1347,6 +1418,55 @@ main{
       <tbody></tbody>
     </table>
   </div>
+
+
+<section id="mtAdvancedSection" class="mt-view-block" data-mt-view="advanced" hidden>
+  <h2 class="section-title" style="margin-top:4px!important">ESTADÍSTICAS AVANZADAS</h2>
+  <p class="status mt-adv-intro">
+    Ritmo, eficiencia y Four Factors. Las fórmulas respetan el material de clase: posesiones con 0,4 × FTA y Four Factors con eFG%, ORB%, TOV% y FTM/FGA.
+  </p>
+
+  <div class="card mt-adv-formulas">
+    <div><b>POSESIONES</b><span>Poss = (FGA − OR) + TOV + (0,4 × FTA)</span></div>
+    <div><b>RATING OFENSIVO</b><span>ORtg = Puntos anotados / Poss × 100</span></div>
+    <div><b>RATING DEFENSIVO</b><span>DRtg = Puntos recibidos / Poss rival × 100</span></div>
+  </div>
+
+  <div class="card mt-adv-controls">
+    <label><b>Equipo</b>
+      <select id="mtAdvTeam" onchange="mtRenderAdvancedStats()">
+        <option value="">Seleccionar equipo</option>
+      </select>
+    </label>
+  </div>
+
+  <div id="mtAdvInfo" class="status mt-adv-intro">Cargá partidos para calcular las estadísticas avanzadas.</div>
+
+  <div class="mt-adv-four-grid">
+    <div class="card mt-adv-factor"><div class="mt-adv-weight">PESO 40%</div><div class="metric-title">eFG%</div><div class="metric-value" id="mtAdvEFG">-</div><div class="metric-note">(FGM + 0,5 × 3PM) / FGA</div></div>
+    <div class="card mt-adv-factor"><div class="mt-adv-weight">PESO 20%</div><div class="metric-title">ORB%</div><div class="metric-value" id="mtAdvORB">-</div><div class="metric-note">ORB / (ORB + DRB rival)</div></div>
+    <div class="card mt-adv-factor"><div class="mt-adv-weight">PESO 25%</div><div class="metric-title">TOV%</div><div class="metric-value" id="mtAdvTOV">-</div><div class="metric-note">TOV / (FGA + 0,44 × FTA + TOV)</div></div>
+    <div class="card mt-adv-factor"><div class="mt-adv-weight">PESO 15%</div><div class="metric-title">FTM / FGA</div><div class="metric-value" id="mtAdvFTR">-</div><div class="metric-note">Tiros libres convertidos / tiros de campo intentados</div></div>
+  </div>
+
+  <div class="mt-adv-rating-grid">
+    <div class="card"><div class="metric-title">POSESIONES PROMEDIO</div><div class="metric-value" id="mtAdvPoss">-</div><div class="metric-note">Promedio por partido</div></div>
+    <div class="card"><div class="metric-title">RATING OFENSIVO</div><div class="metric-value" id="mtAdvORtg">-</div><div class="metric-note">Puntos cada 100 posesiones</div></div>
+    <div class="card"><div class="metric-title">RATING DEFENSIVO</div><div class="metric-value" id="mtAdvDRtg">-</div><div class="metric-note">Puntos recibidos cada 100 posesiones rivales</div></div>
+    <div class="card"><div class="metric-title">NET RATING</div><div class="metric-value" id="mtAdvNet">-</div><div class="metric-note">ORtg − DRtg</div></div>
+  </div>
+
+  <h2 class="section-title">Comparativa avanzada por equipo</h2>
+  <div class="card table-wrap">
+    <table id="mtAdvTable">
+      <thead><tr>
+        <th>Equipo</th><th>PJ</th><th>Poss</th><th>Poss/PJ</th><th>ORtg</th><th>DRtg</th><th>Net</th>
+        <th>eFG%</th><th>ORB%</th><th>TOV%</th><th>FTM/FGA</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</section>
 
 <section id="mtScoutingSection" class="card mt-view-block" data-mt-view="scouting" hidden>
   <h2 class="section-title" style="margin-top:2px!important">INFORME DE SCOUTING</h2>
@@ -5074,7 +5194,7 @@ renderComparePlayer = function(slot){
   }
 
   window.mtSetWorkspaceView = function(view){
-    const allowed = ["team","individual","compare","scouting"];
+    const allowed = ["team","individual","scouting","advanced"];
     if(!allowed.includes(view)) view = "team";
     document.querySelectorAll(".mt-view-block[data-mt-view]").forEach(el=>{
       el.hidden = el.dataset.mtView !== view;
@@ -5086,6 +5206,9 @@ renderComparePlayer = function(slot){
     if(view === "scouting"){
       mtPopulateScoutTeams();
       mtRenderScouting();
+    }
+    if(view === "advanced" && typeof mtRenderAdvancedStats === "function"){
+      mtRenderAdvancedStats();
     }
     setTimeout(()=>{
       if(typeof charts !== "undefined" && charts){
@@ -5105,11 +5228,13 @@ renderComparePlayer = function(slot){
     markHeadingAndNext("análisis individual por jugador", "individual");
     markHeadingAndNext("resumen por jugador", "individual");
 
-    markHeadingAndNext("comparativa individual entre jugadores", "compare");
+    markHeadingAndNext("comparativa individual entre jugadores", "individual");
     mark(document.getElementById("mtScoutingSection"), "scouting");
+    mark(document.getElementById("mtAdvancedSection"), "advanced");
 
     let saved = "team";
     try{ saved = localStorage.getItem("mtpro-view") || "team"; }catch(e){}
+    if(saved === "compare") saved = "individual";
     mtSetWorkspaceView(saved);
   }
 
@@ -5440,6 +5565,273 @@ renderComparePlayer = function(slot){
       setTimeout(refreshScout, 1800);
     }
   });
+})();
+</script>
+
+
+<script id="mt-advanced-stats-script">
+/* ===== MT PRO: FOUR FACTORS + RITMO + RATINGS ===== */
+(function(){
+  const n = v => { v=Number(v||0); return Number.isFinite(v)?v:0; };
+  const f = (v,d=1) => n(v).toFixed(d);
+  const p = (a,b) => b ? (100*n(a)/n(b)) : 0;
+  const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+
+  function filteredRows(){
+    if(typeof allPlayers === "undefined" || !Array.isArray(allPlayers)) return [];
+    if(typeof mtPassDateFilter === "function") return allPlayers.filter(mtPassDateFilter);
+    return allPlayers.slice();
+  }
+
+  function groupGameTeams(rows){
+    const map={};
+    rows.forEach(r=>{
+      const game=String(r.gameId||r.sourceName||r.source||"SIN_PARTIDO");
+      const team=String(r.team||"").trim();
+      if(!team) return;
+      const key=game+"||"+team;
+      if(!map[key]) map[key]={game,team,pts:0,t2m:0,t2a:0,t3m:0,t3a:0,tlm:0,tla:0,ro:0,rd:0,tov:0};
+      const a=map[key];
+      a.pts+=n(r.pts); a.t2m+=n(r.t2m); a.t2a+=n(r.t2a); a.t3m+=n(r.t3m); a.t3a+=n(r.t3a);
+      a.tlm+=n(r.tlm); a.tla+=n(r.tla); a.ro+=n(r.ro); a.rd+=n(r.rd); a.tov+=n(r.per);
+    });
+    return Object.values(map);
+  }
+
+  function buildAdvanced(){
+    const gameTeams=groupGameTeams(filteredRows());
+    const byGame={};
+    gameTeams.forEach(x=>(byGame[x.game] ||= []).push(x));
+    const teams={};
+    const ensure=team=>teams[team] ||= {team,games:new Set(),pts:0,fga:0,fgm:0,t3m:0,fta:0,ftm:0,orb:0,drb:0,tov:0,poss:0,oppPts:0,oppPoss:0,oppDRB:0,oppGames:0};
+
+    Object.values(byGame).forEach(entries=>{
+      entries.forEach(x=>{
+        const a=ensure(x.team);
+        const fga=x.t2a+x.t3a, fgm=x.t2m+x.t3m;
+        const poss=(fga-x.ro)+x.tov+(0.4*x.tla); // fórmula del material de clase
+        a.games.add(x.game); a.pts+=x.pts; a.fga+=fga; a.fgm+=fgm; a.t3m+=x.t3m; a.fta+=x.tla; a.ftm+=x.tlm; a.orb+=x.ro; a.drb+=x.rd; a.tov+=x.tov; a.poss+=poss;
+        const opps=entries.filter(y=>y.team!==x.team);
+        if(opps.length){
+          // En una planilla estándar hay dos equipos. Si hubiera más, se suman los otros registros del mismo partido.
+          opps.forEach(o=>{
+            const ofga=o.t2a+o.t3a;
+            const oposs=(ofga-o.ro)+o.tov+(0.4*o.tla);
+            a.oppPts+=o.pts; a.oppPoss+=oposs; a.oppDRB+=o.rd;
+          });
+          a.oppGames++;
+        }
+      });
+    });
+
+    return Object.values(teams).map(a=>{
+      const gp=a.games.size||0;
+      const efg=p(a.fgm+0.5*a.t3m,a.fga);
+      const orb=p(a.orb,a.orb+a.oppDRB);
+      const tov=p(a.tov,a.fga+0.44*a.fta+a.tov); // fórmula Four Factors del material
+      const ftr=p(a.ftm,a.fga);
+      const ortg=a.poss?100*a.pts/a.poss:0;
+      const drtg=a.oppPoss?100*a.oppPts/a.oppPoss:0;
+      return {...a,gp,efg,orb,tov,ftr,possPg:gp?a.poss/gp:0,ortg,drtg,net:ortg-drtg};
+    }).sort((a,b)=>b.net-a.net || a.team.localeCompare(b.team));
+  }
+
+  function populate(rows){
+    const sel=document.getElementById("mtAdvTeam");
+    if(!sel) return "";
+    const prev=sel.value;
+    sel.innerHTML='<option value="">Seleccionar equipo</option>'+rows.map(r=>`<option value="${esc(r.team)}">${esc(r.team)}</option>`).join("");
+    if(rows.some(r=>r.team===prev)) sel.value=prev;
+    else if(rows.length===1) sel.value=rows[0].team;
+    return sel.value;
+  }
+
+  window.mtRenderAdvancedStats=function(){
+    const rows=buildAdvanced();
+    let team=populate(rows);
+    const sel=document.getElementById("mtAdvTeam");
+    if(sel && sel.value) team=sel.value;
+    const current=rows.find(r=>r.team===team) || null;
+    const set=(id,val)=>{const el=document.getElementById(id); if(el) el.textContent=val;};
+    set("mtAdvEFG",current?f(current.efg,1)+"%":"-");
+    set("mtAdvORB",current?f(current.orb,1)+"%":"-");
+    set("mtAdvTOV",current?f(current.tov,1)+"%":"-");
+    set("mtAdvFTR",current?f(current.ftr,1)+"%":"-");
+    set("mtAdvPoss",current?f(current.possPg,1):"-");
+    set("mtAdvORtg",current?f(current.ortg,1):"-");
+    set("mtAdvDRtg",current&&current.oppPoss?f(current.drtg,1):"-");
+    set("mtAdvNet",current&&current.oppPoss?((current.net>=0?"+":"")+f(current.net,1)):"-");
+
+    const info=document.getElementById("mtAdvInfo");
+    if(info){
+      info.innerHTML=!rows.length ? 'Cargá partidos para calcular las estadísticas avanzadas.' :
+        current ? `<span class="ok">${esc(current.team)}</span> · ${current.gp} partido(s) analizado(s). Los porcentajes se calculan sobre los partidos cargados y el filtro de fechas actual.` :
+        'Seleccioná un equipo para ver sus Four Factors y ratings.';
+    }
+
+    const body=document.querySelector("#mtAdvTable tbody");
+    if(body){
+      body.innerHTML=rows.map(r=>`<tr class="${r.team===team?'mt-adv-selected':''}" onclick="document.getElementById('mtAdvTeam').value=${JSON.stringify(r.team)};mtRenderAdvancedStats();">
+        <td>${esc(r.team)}</td><td>${r.gp}</td><td>${f(r.poss,1)}</td><td>${f(r.possPg,1)}</td><td>${f(r.ortg,1)}</td><td>${r.oppPoss?f(r.drtg,1):'-'}</td><td>${r.oppPoss?((r.net>=0?'+':'')+f(r.net,1)):'-'}</td>
+        <td>${f(r.efg,1)}%</td><td>${f(r.orb,1)}%</td><td>${f(r.tov,1)}%</td><td>${f(r.ftr,1)}%</td>
+      </tr>`).join("");
+    }
+  };
+
+  // Refresca cuando cambia la carga o el rango de fechas.
+  document.addEventListener("DOMContentLoaded",()=>setTimeout(mtRenderAdvancedStats,0));
+  document.addEventListener("change",e=>{
+    if(e.target && ["pdfInput","dateFrom","dateTo"].includes(e.target.id)) setTimeout(mtRenderAdvancedStats,250);
+  });
+  let last=-1;
+  setInterval(()=>{
+    try{
+      const count=Array.isArray(allPlayers)?allPlayers.length:0;
+      if(count!==last){last=count;mtRenderAdvancedStats();}
+    }catch(e){}
+  },700);
+})();
+</script>
+
+
+<style id="mt-team-result-compare-styles">
+/* ===== MT PRO: GANADOS/PERDIDOS + COMPARACIÓN DE EQUIPOS ===== */
+.mt-avg-controls{grid-template-columns:minmax(220px,1.2fr) minmax(170px,.65fr) minmax(170px,.65fr)!important;}
+.team-compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:stretch;margin-bottom:24px;}
+.team-compare-card{padding:22px!important;}
+.team-compare-card>select{width:100%;min-width:0;height:46px;border-radius:14px;}
+.team-compare-card canvas{height:300px!important;margin-top:12px;}
+.mt-team-compare-box{margin-top:12px;padding:12px;border:1px solid rgba(0,212,255,.18);border-radius:12px;background:rgba(2,9,19,.28);line-height:1.55;}
+.mt-team-compare-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 14px;margin-top:8px;font-size:13px;}
+.mt-team-compare-grid span{color:var(--muted);}
+.mt-team-result-badge{display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;margin-left:8px;font-size:11px;font-weight:900;}
+.mt-team-result-badge.win{background:rgba(35,196,131,.13);color:#46d89c;border:1px solid rgba(35,196,131,.32);}
+.mt-team-result-badge.loss{background:rgba(255,23,68,.14);color:#ff6b86;border:1px solid rgba(255,23,68,.34);}
+@media(max-width:900px){.team-compare-grid{grid-template-columns:1fr}.mt-avg-controls{grid-template-columns:1fr!important;}}
+</style>
+<script id="mt-team-result-compare-script">
+(function(){
+  const N = v => { const x=Number(v); return Number.isFinite(x)?x:0; };
+  const E = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+  const F = (v,d=1) => N(v).toFixed(d);
+
+  function rows(){ return (window.allPlayers || (typeof allPlayers!=="undefined"?allPlayers:[]) || []); }
+  function gameTeamPoints(){
+    const map={};
+    rows().forEach(p=>{
+      if(!p.gameId || !p.team) return;
+      const k=p.gameId+"||"+p.team;
+      if(!map[k]) map[k]={gameId:p.gameId,team:p.team,pts:0,source:p.sourceFile||p.source||"",date:p.gameDate||p.date||""};
+      map[k].pts += N(p.pts);
+    });
+    return map;
+  }
+  function resultForGame(gameId,team){
+    const map=gameTeamPoints();
+    const mine=map[gameId+"||"+team];
+    if(!mine) return "DESCONOCIDO";
+    const opp=Object.values(map).find(x=>x.gameId===gameId && x.team!==team);
+    if(!opp) return "DESCONOCIDO";
+    if(mine.pts>opp.pts) return "GANADOS";
+    if(mine.pts<opp.pts) return "PERDIDOS";
+    return "EMPATE";
+  }
+
+  // Extiende Promedios por condición con filtro de resultado.
+  if(typeof window.renderVenueAverages === "function"){
+    const base=window.renderVenueAverages;
+    window.renderVenueAverages=function(){
+      // Para TODOS dejamos que el render original trabaje y luego, si hay resultado, filtramos con el mismo agregado.
+      const teamSel=document.getElementById("avgTeamSelect");
+      const venueSel=document.getElementById("avgVenueSelect");
+      const resultSel=document.getElementById("avgResultSelect");
+      const info=document.getElementById("avgVenueInfo");
+      const tbody=document.querySelector("#avgVenueTable tbody");
+      if(!teamSel||!venueSel||!resultSel||!tbody) return base.apply(this,arguments);
+      if(typeof populateVenueAverageTeams === "function") populateVenueAverageTeams();
+      const team=teamSel.value;
+      const venue=venueSel.value||"TODOS";
+      const result=resultSel.value||"TODOS";
+      tbody.innerHTML="";
+      if(!team){ if(info) info.textContent="Seleccioná un equipo para ver sus promedios."; return; }
+      let rr=rows().filter(p=>p.team===team);
+      if(venue!=="TODOS") rr=rr.filter(p=>{
+        const sourceName=p.sourceFile||p.source||"";
+        return (typeof mtVenueForSelectedTeam==="function"?mtVenueForSelectedTeam(sourceName,team):"")===venue;
+      });
+      if(result!=="TODOS") rr=rr.filter(p=>resultForGame(p.gameId,team)===result);
+      const gameIds=[...new Set(rr.map(p=>p.gameId).filter(Boolean))];
+      if(!rr.length||!gameIds.length){
+        if(info) info.innerHTML=`No hay partidos de <b>${E(team)}</b> para <b>${E(venue)}</b> + <b>${E(result)}</b>.`;
+        return;
+      }
+      if(typeof mtAvgAggregate!=="function" || typeof mtAvgRowHTML!=="function"){
+        // Las funciones están dentro del closure original; si no son globales, usamos un agregado equivalente local.
+        const agg=(list,name,games)=>{
+          const a={player:name,team,minDecimal:0,pts:0,t2m:0,t2a:0,t3m:0,t3a:0,tlm:0,tla:0,rd:0,ro:0,reb:0,ast:0,rec:0,per:0,tapTC:0,tapTR:0,fc:0,fr:0,val:0,pm:0};
+          list.forEach(r=>Object.keys(a).forEach(k=>{ if(typeof a[k]==="number") a[k]+=N(r[k]); }));
+          const d=Math.max(1,games); ["minDecimal","pts","t2m","t2a","t3m","t3a","tlm","tla","rd","ro","reb","ast","rec","per","tapTC","tapTR","fc","fr","val","pm"].forEach(k=>a[k]/=d);
+          const c=calcRow(a); c.gamesCount=games; c.t2pct=c.t2a?100*c.t2m/c.t2a:0;c.t3pct=c.t3a?100*c.t3m/c.t3a:0;c.tlpct=c.tla?100*c.tlm/c.tla:0;return c;
+        };
+        const rowHTML=(r,isTeam)=>{ const pm=N(r.pm), pc=pm>0?"badge-positive":pm<0?"badge-negative":""; return `<tr class="${isTeam?'mt-team-average':''}"><td class="${isTeam?'':'mt-player-name'}"><b>${E(r.player)}</b></td><td>${r.gamesCount||0}</td><td>${F(r.minDecimal,1)}</td><td>${F(r.pts,1)}</td><td>${F(r.t2m,1)}/${F(r.t2a,1)}</td><td>${F(r.t2pct,1)}%</td><td>${F(r.t3m,1)}/${F(r.t3a,1)}</td><td>${F(r.t3pct,1)}%</td><td>${F(r.tlm,1)}/${F(r.tla,1)}</td><td>${F(r.tlpct,1)}%</td><td>${F(r.rd,1)}</td><td>${F(r.ro,1)}</td><td>${F(r.reb,1)}</td><td>${F(r.ast,1)}</td><td>${F(r.rec,1)}</td><td>${F(r.per,1)}</td><td>${F(r.tapTC,1)}</td><td>${F(r.tapTR,1)}</td><td>${F(r.fc,1)}</td><td>${F(r.fr,1)}</td><td>${F(r.val,1)}</td><td class="${pc}">${F(pm,1)}</td><td>${F(r.plays,1)}</td><td>${F(r.ppp,3)}</td><td>${F(r.efg,1)}%</td><td>${F(r.fin1,1)}%</td><td>${F(r.fin2,1)}%</td><td>${F(r.fin3,1)}%</td></tr>`; };
+        tbody.insertAdjacentHTML("beforeend",rowHTML(agg(rr,"PROMEDIO EQUIPO",gameIds.length),true));
+        const by={}; rr.forEach(r=>(by[r.player||"Sin nombre"]??=[]).push(r));
+        Object.keys(by).sort((a,b)=>a.localeCompare(b)).forEach(name=>{ const pr=by[name], pg=new Set(pr.map(x=>x.gameId).filter(Boolean)).size; tbody.insertAdjacentHTML("beforeend",rowHTML(agg(pr,name,pg),false)); });
+      }else{
+        tbody.insertAdjacentHTML("beforeend",mtAvgRowHTML(mtAvgAggregate(rr,"PROMEDIO EQUIPO",team,gameIds.length),true));
+        const by={}; rr.forEach(r=>(by[r.player||"Sin nombre"]??=[]).push(r));
+        Object.keys(by).sort((a,b)=>a.localeCompare(b)).forEach(name=>{ const pr=by[name], pg=new Set(pr.map(x=>x.gameId).filter(Boolean)).size; tbody.insertAdjacentHTML("beforeend",mtAvgRowHTML(mtAvgAggregate(pr,name,team,pg),false)); });
+      }
+      if(info) info.innerHTML=`<b>${E(team)}</b> — ${E(venue)} — ${E(result)} — ${gameIds.length} partido${gameIds.length===1?'':'s'}. La primera fila es el promedio del equipo; debajo aparecen los promedios individuales.`;
+    };
+  }
+
+  function datePass(p,slot){
+    const from=document.getElementById(`teamCompareDateFrom${slot}`)?.value||"";
+    const to=document.getElementById(`teamCompareDateTo${slot}`)?.value||"";
+    const d=p.gameDate||p.date||"";
+    if(!d) return true;
+    if(from&&d<from) return false;if(to&&d>to) return false;return true;
+  }
+  function teamAgg(team,slot){
+    const rr=rows().filter(p=>p.team===team&&datePass(p,slot));
+    if(!rr.length) return null;
+    const games=[...new Set(rr.map(p=>p.gameId).filter(Boolean))]; const d=Math.max(1,games.length);
+    const t={team,gamesCount:games.length,pts:0,t2m:0,t2a:0,t3m:0,t3a:0,tlm:0,tla:0,rd:0,ro:0,reb:0,ast:0,rec:0,per:0,tapTC:0,tapTR:0,fc:0,fr:0,val:0,pm:0};
+    rr.forEach(p=>{["pts","t2m","t2a","t3m","t3a","tlm","tla","rd","ro","reb","ast","rec","per","tapTC","tapTR","fc","fr","val","pm"].forEach(k=>t[k]+=N(p[k]));});
+    // Conteos mostrados como promedio por partido; porcentajes/PPP/eFG a partir de totales.
+    const totals={...t}; const calc=calcRow({...totals});
+    ["pts","t2m","t2a","t3m","t3a","tlm","tla","rd","ro","reb","ast","rec","per","tapTC","tapTR","fc","fr","val","pm"].forEach(k=>t[k]/=d);
+    t.plays=calc.plays/d;t.ppp=calc.ppp;t.efg=calc.efg;t.fin1=calc.fin1;t.fin2=calc.fin2;t.fin3=calc.fin3;
+    t.t2pct=totals.t2a?100*totals.t2m/totals.t2a:0;t.t3pct=totals.t3a?100*totals.t3m/totals.t3a:0;t.tlpct=totals.tla?100*totals.tlm/totals.tla:0;
+    let wins=0,losses=0;games.forEach(g=>{const r=resultForGame(g,team);if(r==="GANADOS")wins++;else if(r==="PERDIDOS")losses++;});t.wins=wins;t.losses=losses;
+    return t;
+  }
+  function better(slot,metric,val){
+    const other=teamAgg(document.getElementById(`teamCompareSelect${slot===1?2:1}`)?.value||"",slot===1?2:1); if(!other)return"";
+    const low=["per","fc"].includes(metric);const a=N(val),b=N(other[metric]);if(a===b)return"compare-equal";return(low?a<b:a>b)?"compare-better":"compare-worse";
+  }
+  function teamHTML(t,slot){
+    const c=(label,m,v,txt=v)=>`<div class="${better(slot,m,v)}"><span>${label}:</span> ${txt}</div>`;
+    return `<div class="mt-team-compare-box"><b>${E(t.team)}</b><span class="mt-team-result-badge win">${t.wins} G</span><span class="mt-team-result-badge loss">${t.losses} P</span><br><span>Promedios por partido (${t.gamesCount} PJ)</span><div class="mt-team-compare-grid">${c("PTS","pts",t.pts,F(t.pts,1))}${c("2P%","t2pct",t.t2pct,F(t.t2pct,1)+"%")}${c("3P%","t3pct",t.t3pct,F(t.t3pct,1)+"%")}${c("TL%","tlpct",t.tlpct,F(t.tlpct,1)+"%")}${c("RD","rd",t.rd,F(t.rd,1))}${c("RO","ro",t.ro,F(t.ro,1))}${c("REB","reb",t.reb,F(t.reb,1))}${c("AST","ast",t.ast,F(t.ast,1))}${c("REC","rec",t.rec,F(t.rec,1))}${c("PER","per",t.per,F(t.per,1))}${c("VAL","val",t.val,F(t.val,1))}${c("+/-","pm",t.pm,F(t.pm,1))}${c("Plays","plays",t.plays,F(t.plays,1))}${c("PPP","ppp",t.ppp,F(t.ppp,3))}${c("eFG%","efg",t.efg,F(t.efg,1)+"%")}</div></div>`;
+  }
+  function chart(slot,t){
+    const id=`chartTeamCompare${slot}`,ctx=document.getElementById(id);if(!ctx||typeof Chart==="undefined")return;
+    window.__mtTeamCompareCharts=window.__mtTeamCompareCharts||{}; if(window.__mtTeamCompareCharts[id]) window.__mtTeamCompareCharts[id].destroy();
+    if(!t)return;
+    window.__mtTeamCompareCharts[id]=new Chart(ctx,{type:"bar",data:{labels:["PTS","REB","AST","REC","PPP x10","eFG%"],datasets:[{label:t.team,data:[t.pts,t.reb,t.ast,t.rec,t.ppp*10,t.efg]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+  }
+  window.mtPopulateTeamCompare=function(){
+    const teams=[...new Set(rows().map(p=>p.team).filter(Boolean))].sort();[1,2].forEach(slot=>{const sel=document.getElementById(`teamCompareSelect${slot}`);if(!sel)return;const cur=sel.value;sel.innerHTML='<option value="">Seleccionar equipo</option>'+teams.map(t=>`<option value="${E(t)}">${E(t)}</option>`).join('');if(teams.includes(cur))sel.value=cur;});
+  };
+  window.mtRenderTeamComparison=function(){
+    mtPopulateTeamCompare(); [1,2].forEach(slot=>{const team=document.getElementById(`teamCompareSelect${slot}`)?.value||"";const info=document.getElementById(`teamCompareInfo${slot}`);const t=team?teamAgg(team,slot):null;if(info)info.innerHTML=t?teamHTML(t,slot):"Seleccioná un equipo para comparar.";chart(slot,t);});
+  };
+  document.addEventListener("DOMContentLoaded",()=>{mtPopulateTeamCompare();mtRenderTeamComparison();});
+  document.addEventListener("change",e=>{if(e.target&&["avgResultSelect","avgVenueSelect","avgTeamSelect","teamCompareSelect1","teamCompareSelect2","teamCompareDateFrom1","teamCompareDateTo1","teamCompareDateFrom2","teamCompareDateTo2"].includes(e.target.id)){setTimeout(()=>{if(typeof renderVenueAverages==="function")renderVenueAverages();mtRenderTeamComparison();},20);}});
+  // Refresca nuevas listas al cargar/analizar archivos.
+  const oldRender=window.renderDashboard;
+  if(typeof oldRender==="function") window.renderDashboard=function(){const r=oldRender.apply(this,arguments);setTimeout(()=>{mtPopulateTeamCompare();mtRenderTeamComparison();if(typeof renderVenueAverages==="function")renderVenueAverages();},0);return r;};
 })();
 </script>
 
