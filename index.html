@@ -977,7 +977,7 @@ main{
 .mt-adv-formulas>div{padding:14px;border-radius:14px;border:1px solid rgba(0,212,255,.16);background:rgba(2,9,19,.30);}
 .mt-adv-formulas b{display:block;color:var(--accent);font-size:12px;letter-spacing:.55px;margin-bottom:7px;}
 .mt-adv-formulas span{color:#dbe8f4;font-size:13px;line-height:1.45;}
-.mt-adv-controls{max-width:520px;margin:0 auto 18px;}
+.mt-adv-controls{max-width:1100px;margin:0 auto 18px;display:grid;grid-template-columns:minmax(260px,1.25fr) minmax(180px,.75fr) minmax(180px,.75fr);gap:14px;}
 .mt-adv-controls label{display:flex;flex-direction:column;gap:8px;color:#c8d9e9;font-size:13px;}
 .mt-adv-controls select{width:100%;min-width:0;}
 .mt-adv-four-grid,.mt-adv-rating-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:20px;}
@@ -989,7 +989,7 @@ main{
 #mtAdvTable tbody tr.mt-adv-selected td{background:rgba(0,212,255,.10);font-weight:800;}
 #mtAdvTable tbody tr.mt-adv-selected td:first-child{background:#0d2b40;color:var(--accent);}
 @media(max-width:1100px){.mt-adv-four-grid,.mt-adv-rating-grid{grid-template-columns:1fr 1fr}.mt-adv-formulas{grid-template-columns:1fr;}}
-@media(max-width:650px){.mt-adv-four-grid,.mt-adv-rating-grid{grid-template-columns:1fr}.mt-view-nav{grid-template-columns:1fr 1fr!important;}}
+@media(max-width:650px){.mt-adv-four-grid,.mt-adv-rating-grid{grid-template-columns:1fr}.mt-adv-controls{grid-template-columns:1fr}.mt-view-nav{grid-template-columns:1fr 1fr!important;}}
 </style>
 
 </head>
@@ -1436,6 +1436,20 @@ main{
     <label><b>Equipo</b>
       <select id="mtAdvTeam" onchange="mtRenderAdvancedStats()">
         <option value="">Seleccionar equipo</option>
+      </select>
+    </label>
+    <label><b>Condición</b>
+      <select id="mtAdvVenue" onchange="mtRenderAdvancedStats()">
+        <option value="TODOS">TODOS</option>
+        <option value="LOCAL">LOCAL</option>
+        <option value="VISITANTE">VISITANTE</option>
+      </select>
+    </label>
+    <label><b>Resultado</b>
+      <select id="mtAdvResult" onchange="mtRenderAdvancedStats()">
+        <option value="TOTAL">TOTAL</option>
+        <option value="GANANDO">GANANDO</option>
+        <option value="PERDIENDO">PERDIENDO</option>
       </select>
     </label>
   </div>
@@ -5598,7 +5612,33 @@ renderComparePlayer = function(slot){
     return Object.values(map);
   }
 
+  function advVenue(sourceName,team){
+    if(typeof mtVenueForSelectedTeam === "function"){
+      try{return mtVenueForSelectedTeam(sourceName||"",team)||"";}catch(e){}
+    }
+    const clean=String(sourceName||"").replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').trim();
+    const parts=clean.split(/\s+vs\.?\s+/i);
+    if(parts.length>=2){
+      const norm=x=>String(x||"").toUpperCase().replace(/[^A-ZÁÉÍÓÚÜÑ0-9]/g,'');
+      const t=norm(team),local=norm(parts[0]),visit=norm(parts.slice(1).join(' vs '));
+      if(local.includes(t)||t.includes(local)) return "LOCAL";
+      if(visit.includes(t)||t.includes(visit)) return "VISITANTE";
+    }
+    return "";
+  }
+
+  function gameResult(x,entries){
+    const opps=entries.filter(y=>y.team!==x.team);
+    if(!opps.length) return "DESCONOCIDO";
+    const oppPts=opps.reduce((a,o)=>a+n(o.pts),0);
+    if(n(x.pts)>oppPts) return "GANANDO";
+    if(n(x.pts)<oppPts) return "PERDIENDO";
+    return "EMPATE";
+  }
+
   function buildAdvanced(){
+    const venueFilter=document.getElementById("mtAdvVenue")?.value||"TODOS";
+    const resultFilter=document.getElementById("mtAdvResult")?.value||"TOTAL";
     const gameTeams=groupGameTeams(filteredRows());
     const byGame={};
     gameTeams.forEach(x=>(byGame[x.game] ||= []).push(x));
@@ -5607,13 +5647,19 @@ renderComparePlayer = function(slot){
 
     Object.values(byGame).forEach(entries=>{
       entries.forEach(x=>{
+        const sourceRows=filteredRows().filter(r=>String(r.gameId||r.sourceName||r.source||"SIN_PARTIDO")===x.game && String(r.team||"").trim()===x.team);
+        const sourceName=sourceRows[0]?.sourceFile||sourceRows[0]?.sourceName||sourceRows[0]?.source||"";
+        const venue=advVenue(sourceName,x.team);
+        const result=gameResult(x,entries);
+        if(venueFilter!=="TODOS" && venue!==venueFilter) return;
+        if(resultFilter!=="TOTAL" && result!==resultFilter) return;
+
         const a=ensure(x.team);
         const fga=x.t2a+x.t3a, fgm=x.t2m+x.t3m;
-        const poss=(fga-x.ro)+x.tov+(0.4*x.tla); // fórmula del material de clase
+        const poss=(fga-x.ro)+x.tov+(0.4*x.tla);
         a.games.add(x.game); a.pts+=x.pts; a.fga+=fga; a.fgm+=fgm; a.t3m+=x.t3m; a.fta+=x.tla; a.ftm+=x.tlm; a.orb+=x.ro; a.drb+=x.rd; a.tov+=x.tov; a.poss+=poss;
         const opps=entries.filter(y=>y.team!==x.team);
         if(opps.length){
-          // En una planilla estándar hay dos equipos. Si hubiera más, se suman los otros registros del mismo partido.
           opps.forEach(o=>{
             const ofga=o.t2a+o.t3a;
             const oposs=(ofga-o.ro)+o.tov+(0.4*o.tla);
@@ -5628,7 +5674,7 @@ renderComparePlayer = function(slot){
       const gp=a.games.size||0;
       const efg=p(a.fgm+0.5*a.t3m,a.fga);
       const orb=p(a.orb,a.orb+a.oppDRB);
-      const tov=p(a.tov,a.fga+0.44*a.fta+a.tov); // fórmula Four Factors del material
+      const tov=p(a.tov,a.fga+0.44*a.fta+a.tov);
       const ftr=p(a.ftm,a.fga);
       const ortg=a.poss?100*a.pts/a.poss:0;
       const drtg=a.oppPoss?100*a.oppPts/a.oppPoss:0;
@@ -5665,7 +5711,7 @@ renderComparePlayer = function(slot){
     const info=document.getElementById("mtAdvInfo");
     if(info){
       info.innerHTML=!rows.length ? 'Cargá partidos para calcular las estadísticas avanzadas.' :
-        current ? `<span class="ok">${esc(current.team)}</span> · ${current.gp} partido(s) analizado(s). Los porcentajes se calculan sobre los partidos cargados y el filtro de fechas actual.` :
+        current ? `<span class="ok">${esc(current.team)}</span> · ${current.gp} partido(s) analizado(s) · ${esc(document.getElementById("mtAdvVenue")?.value||"TODOS")} · ${esc(document.getElementById("mtAdvResult")?.value||"TOTAL")}. Los porcentajes se calculan sobre los partidos que cumplen estos filtros y el rango de fechas actual.` :
         'Seleccioná un equipo para ver sus Four Factors y ratings.';
     }
 
