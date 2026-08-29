@@ -973,14 +973,15 @@ main{
 /* ===== MT PRO: ESTADÍSTICAS AVANZADAS ===== */
 #mtAdvancedSection{margin-top:8px;}
 .mt-adv-intro{text-align:center;max-width:1080px;margin:0 auto 18px!important;line-height:1.55;}
-.mt-adv-formulas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:18px;}
+.mt-adv-formulas{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px;}
 .mt-adv-formulas>div{padding:14px;border-radius:14px;border:1px solid rgba(0,212,255,.16);background:rgba(2,9,19,.30);}
 .mt-adv-formulas b{display:block;color:var(--accent);font-size:12px;letter-spacing:.55px;margin-bottom:7px;}
 .mt-adv-formulas span{color:#dbe8f4;font-size:13px;line-height:1.45;}
 .mt-adv-controls{max-width:1100px;margin:0 auto 18px;display:grid;grid-template-columns:minmax(260px,1.25fr) minmax(180px,.75fr) minmax(180px,.75fr);gap:14px;}
 .mt-adv-controls label{display:flex;flex-direction:column;gap:8px;color:#c8d9e9;font-size:13px;}
 .mt-adv-controls select{width:100%;min-width:0;}
-.mt-adv-four-grid,.mt-adv-rating-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:20px;}
+.mt-adv-four-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:20px;}
+.mt-adv-rating-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px;margin-bottom:20px;}
 .mt-adv-factor{position:relative;overflow:hidden;min-height:205px;}
 .mt-adv-factor:after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:.8;}
 .mt-adv-weight{display:inline-block;margin-bottom:13px;padding:5px 8px;border-radius:999px;background:rgba(0,212,255,.12);border:1px solid rgba(0,212,255,.25);color:#72e9ff;font-size:10px;font-weight:900;letter-spacing:.5px;}
@@ -1430,6 +1431,7 @@ main{
     <div><b>POSESIONES</b><span>Poss = (FGA − OR) + TOV + (0,4 × FTA)</span></div>
     <div><b>RATING OFENSIVO</b><span>ORtg = Puntos anotados / Poss × 100</span></div>
     <div><b>RATING DEFENSIVO</b><span>DRtg = Puntos recibidos / Poss rival × 100</span></div>
+    <div><b>PUNTOS POR POSESIÓN</b><span>PPP = Puntos anotados / Poss</span></div>
   </div>
 
   <div class="card mt-adv-controls">
@@ -1465,6 +1467,7 @@ main{
 
   <div class="mt-adv-rating-grid">
     <div class="card"><div class="metric-title">POSESIONES PROMEDIO</div><div class="metric-value" id="mtAdvPoss">-</div><div class="metric-note">Promedio por partido</div></div>
+    <div class="card"><div class="metric-title">PUNTOS POR POSESIÓN (PPP)</div><div class="metric-value" id="mtAdvPPP">-</div><div class="metric-note">Puntos anotados por cada posesión</div></div>
     <div class="card"><div class="metric-title">RATING OFENSIVO</div><div class="metric-value" id="mtAdvORtg">-</div><div class="metric-note">Puntos cada 100 posesiones</div></div>
     <div class="card"><div class="metric-title">RATING DEFENSIVO</div><div class="metric-value" id="mtAdvDRtg">-</div><div class="metric-note">Puntos recibidos cada 100 posesiones rivales</div></div>
     <div class="card"><div class="metric-title">NET RATING</div><div class="metric-value" id="mtAdvNet">-</div><div class="metric-note">ORtg − DRtg</div></div>
@@ -1474,7 +1477,7 @@ main{
   <div class="card table-wrap">
     <table id="mtAdvTable">
       <thead><tr>
-        <th>Equipo</th><th>PJ</th><th>Poss</th><th>Poss/PJ</th><th>ORtg</th><th>DRtg</th><th>Net</th>
+        <th>Equipo</th><th>PJ</th><th>Poss</th><th>Poss/PJ</th><th>PPP</th><th>ORtg</th><th>DRtg</th><th>Net</th>
         <th>eFG%</th><th>ORB%</th><th>TOV%</th><th>FTM/FGA</th>
       </tr></thead>
       <tbody></tbody>
@@ -5676,9 +5679,10 @@ renderComparePlayer = function(slot){
       const orb=p(a.orb,a.orb+a.oppDRB);
       const tov=p(a.tov,a.fga+0.44*a.fta+a.tov);
       const ftr=p(a.ftm,a.fga);
+      const ppp=a.poss?a.pts/a.poss:0;
       const ortg=a.poss?100*a.pts/a.poss:0;
       const drtg=a.oppPoss?100*a.oppPts/a.oppPoss:0;
-      return {...a,gp,efg,orb,tov,ftr,possPg:gp?a.poss/gp:0,ortg,drtg,net:ortg-drtg};
+      return {...a,gp,efg,orb,tov,ftr,possPg:gp?a.poss/gp:0,ppp,ortg,drtg,net:ortg-drtg};
     }).sort((a,b)=>b.net-a.net || a.team.localeCompare(b.team));
   }
 
@@ -5704,6 +5708,7 @@ renderComparePlayer = function(slot){
     set("mtAdvTOV",current?f(current.tov,1)+"%":"-");
     set("mtAdvFTR",current?f(current.ftr,1)+"%":"-");
     set("mtAdvPoss",current?f(current.possPg,1):"-");
+    set("mtAdvPPP",current?f(current.ppp,3):"-");
     set("mtAdvORtg",current?f(current.ortg,1):"-");
     set("mtAdvDRtg",current&&current.oppPoss?f(current.drtg,1):"-");
     set("mtAdvNet",current&&current.oppPoss?((current.net>=0?"+":"")+f(current.net,1)):"-");
@@ -5718,7 +5723,7 @@ renderComparePlayer = function(slot){
     const body=document.querySelector("#mtAdvTable tbody");
     if(body){
       body.innerHTML=rows.map(r=>`<tr class="${r.team===team?'mt-adv-selected':''}" onclick="document.getElementById('mtAdvTeam').value=${JSON.stringify(r.team)};mtRenderAdvancedStats();">
-        <td>${esc(r.team)}</td><td>${r.gp}</td><td>${f(r.poss,1)}</td><td>${f(r.possPg,1)}</td><td>${f(r.ortg,1)}</td><td>${r.oppPoss?f(r.drtg,1):'-'}</td><td>${r.oppPoss?((r.net>=0?'+':'')+f(r.net,1)):'-'}</td>
+        <td>${esc(r.team)}</td><td>${r.gp}</td><td>${f(r.poss,1)}</td><td>${f(r.possPg,1)}</td><td>${f(r.ppp,3)}</td><td>${f(r.ortg,1)}</td><td>${r.oppPoss?f(r.drtg,1):'-'}</td><td>${r.oppPoss?((r.net>=0?'+':'')+f(r.net,1)):'-'}</td>
         <td>${f(r.efg,1)}%</td><td>${f(r.orb,1)}%</td><td>${f(r.tov,1)}%</td><td>${f(r.ftr,1)}%</td>
       </tr>`).join("");
     }
