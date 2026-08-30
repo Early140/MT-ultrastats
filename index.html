@@ -993,9 +993,146 @@ main{
 @media(max-width:650px){.mt-adv-four-grid,.mt-adv-rating-grid{grid-template-columns:1fr}.mt-adv-controls{grid-template-columns:1fr}.mt-view-nav{grid-template-columns:1fr 1fr!important;}}
 </style>
 
+
+<style id="mt-login-style">
+  body.mt-auth-locked { overflow:hidden !important; }
+  #mtLoginGate{
+    position:fixed; inset:0; z-index:999999;
+    display:flex; align-items:center; justify-content:center;
+    padding:24px;
+    background:
+      radial-gradient(circle at 20% 10%, rgba(0,212,255,.18), transparent 34%),
+      linear-gradient(135deg,#020913,#071827 55%,#0a2237);
+  }
+  #mtLoginGate[hidden]{display:none!important;}
+  .mt-login-card{
+    width:min(470px,100%);
+    background:linear-gradient(180deg,rgba(18,43,64,.98),rgba(5,19,32,.98));
+    border:1px solid rgba(0,212,255,.38);
+    border-radius:24px;
+    padding:34px;
+    box-shadow:0 28px 80px rgba(0,0,0,.55), 0 0 0 1px rgba(0,212,255,.06) inset;
+  }
+  .mt-login-brand{font-size:31px;font-weight:1000;font-style:italic;letter-spacing:.5px;margin-bottom:7px;color:#fff;}
+  .mt-login-brand span{color:#00d4ff;}
+  .mt-login-sub{color:#a9b8c8;font-size:14px;line-height:1.45;margin-bottom:24px;}
+  .mt-login-label{display:block;color:#dceaf6;font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.5px;margin:13px 0 7px;}
+  .mt-login-input{
+    width:100%; height:52px; border-radius:14px; border:1px solid rgba(0,212,255,.3);
+    padding:0 15px; font-size:16px; font-weight:700; outline:none; background:#fff; color:#071827;
+  }
+  .mt-login-input:focus{box-shadow:0 0 0 3px rgba(0,212,255,.18);border-color:#00d4ff;}
+  .mt-login-pass-wrap{position:relative;}
+  .mt-login-pass-wrap .mt-login-input{padding-right:76px;}
+  .mt-login-show{
+    position:absolute;right:7px;top:7px;height:38px;padding:0 11px;border-radius:10px;
+    background:#15374f;color:#fff;border:1px solid rgba(0,212,255,.22);box-shadow:none;font-size:11px;
+  }
+  .mt-login-submit{width:100%;height:54px;margin-top:20px;border-radius:14px;font-size:15px;font-weight:1000;}
+  #mtLoginError{min-height:20px;margin-top:12px;color:#ff6b86;font-size:13px;font-weight:800;text-align:center;}
+  .mt-login-note{margin-top:14px;color:#7790a5;font-size:11px;line-height:1.4;text-align:center;}
+  #mtLogoutBtn{
+    position:fixed; right:16px; bottom:16px; z-index:9990;
+    background:#17364f;color:#fff;border:1px solid rgba(0,212,255,.3);box-shadow:0 8px 22px rgba(0,0,0,.28);
+  }
+  @media(max-width:560px){.mt-login-card{padding:26px 20px}.mt-login-brand{font-size:26px}}
+
+  .mt-auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:2px 0 18px;padding:5px;border-radius:14px;background:rgba(0,0,0,.22)}
+  .mt-auth-tab{height:42px;border-radius:10px;background:transparent;color:#9fb3c5;border:1px solid transparent;box-shadow:none;font-size:12px;font-weight:1000}
+  .mt-auth-tab.active{background:#113650;color:#fff;border-color:rgba(0,212,255,.35)}
+  #mtSessionActions{position:fixed;right:16px;bottom:16px;z-index:9990;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+  #mtSessionActions[hidden]{display:none!important}
+  #mtSessionActions button{position:static;background:#17364f;color:#fff;border:1px solid rgba(0,212,255,.3);box-shadow:0 8px 22px rgba(0,0,0,.28)}
+  #mtAdminBtn{background:#006f88!important}
+  #mtAdminModal{position:fixed;inset:0;z-index:999998;background:rgba(0,5,12,.88);padding:24px;overflow:auto}
+  #mtAdminModal[hidden]{display:none!important}
+  .mt-admin-card{width:min(1180px,100%);margin:4vh auto;background:#071b2c;border:1px solid rgba(0,212,255,.35);border-radius:22px;padding:22px;box-shadow:0 30px 90px rgba(0,0,0,.55)}
+  .mt-admin-head{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:15px}
+  #mtAdminMessage{min-height:23px;margin:4px 0 12px;font-weight:800;font-size:13px;color:#7feaff}
+  .mt-admin-table-wrap{overflow:auto;border:1px solid rgba(0,212,255,.15);border-radius:14px}
+  .mt-admin-table{width:100%;border-collapse:collapse;min-width:920px}
+  .mt-admin-table th,.mt-admin-table td{padding:11px 10px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left;font-size:12px;vertical-align:middle}
+  .mt-admin-table th{background:#061321;color:#9ecce5;text-transform:uppercase;font-size:10px;letter-spacing:.4px}
+  .mt-admin-table td{color:#e7f3fa;background:#0a2236}
+  .mt-admin-table small{display:block;color:#7895aa;margin-top:3px}
+  .mt-admin-actions{display:flex;gap:6px;flex-wrap:wrap}
+  .mt-admin-actions button{padding:7px 9px;font-size:10px;border-radius:8px;box-shadow:none}
+  .mt-status{display:inline-block;padding:5px 8px;border-radius:999px;font-size:10px;font-weight:1000}
+  .mt-status.ACTIVE{background:rgba(39,214,129,.16);color:#65f0aa;border:1px solid rgba(39,214,129,.25)}
+  .mt-status.PENDING{background:rgba(255,190,54,.15);color:#ffd272;border:1px solid rgba(255,190,54,.25)}
+  .mt-status.BLOCKED{background:rgba(255,77,109,.14);color:#ff8299;border:1px solid rgba(255,77,109,.25)}
+  @media(max-width:560px){#mtSessionActions{left:10px;right:10px;bottom:10px}.mt-admin-card{padding:14px}.mt-admin-head{align-items:flex-start}.mt-auth-tabs{grid-template-columns:1fr}}
+</style>
+
 </head>
 
-<body>
+<body class="mt-auth-locked">
+
+<div id="mtLoginGate" role="dialog" aria-modal="true" aria-labelledby="mtLoginTitle">
+  <div class="mt-login-card">
+    <div class="mt-login-brand" id="mtLoginTitle">MT <span>PRO</span> BÁSQUET</div>
+    <div class="mt-login-sub">Acceso privado administrado con Google Sheets. Las cuentas nuevas necesitan aprobación.</div>
+
+    <div class="mt-auth-tabs" role="tablist">
+      <button type="button" class="mt-auth-tab active" id="mtTabLogin">INGRESAR</button>
+      <button type="button" class="mt-auth-tab" id="mtTabRegister">CREAR CUENTA</button>
+    </div>
+
+    <form id="mtLoginForm" autocomplete="on">
+      <label class="mt-login-label" for="mtLoginUser">Usuario</label>
+      <input class="mt-login-input" id="mtLoginUser" type="text" inputmode="text" autocapitalize="none" spellcheck="false" autocomplete="username" required>
+      <label class="mt-login-label" for="mtLoginPass">Contraseña</label>
+      <div class="mt-login-pass-wrap">
+        <input class="mt-login-input" id="mtLoginPass" type="password" autocomplete="current-password" required>
+        <button class="mt-login-show" type="button" data-pass="mtLoginPass">VER</button>
+      </div>
+      <button class="mt-login-submit" type="submit" id="mtLoginSubmit">INGRESAR</button>
+    </form>
+
+    <form id="mtRegisterForm" autocomplete="on" hidden>
+      <label class="mt-login-label" for="mtRegName">Nombre y apellido</label>
+      <input class="mt-login-input" id="mtRegName" type="text" autocomplete="name" required>
+      <label class="mt-login-label" for="mtRegUser">Usuario</label>
+      <input class="mt-login-input" id="mtRegUser" type="text" autocapitalize="none" spellcheck="false" autocomplete="username" required>
+      <label class="mt-login-label" for="mtRegEmail">Email</label>
+      <input class="mt-login-input" id="mtRegEmail" type="email" autocomplete="email" required>
+      <label class="mt-login-label" for="mtRegPass">Contraseña</label>
+      <div class="mt-login-pass-wrap">
+        <input class="mt-login-input" id="mtRegPass" type="password" minlength="6" autocomplete="new-password" required>
+        <button class="mt-login-show" type="button" data-pass="mtRegPass">VER</button>
+      </div>
+      <button class="mt-login-submit" type="submit" id="mtRegisterSubmit">SOLICITAR ACCESO</button>
+    </form>
+
+    <div id="mtLoginError"></div>
+    <div class="mt-login-note" id="mtLoginNote">Máximo 3 usuarios habilitados además del administrador. Cada cuenta queda vinculada al dispositivo/navegador donde se registra.</div>
+  </div>
+</div>
+
+<div id="mtSessionActions" hidden>
+  <button id="mtAdminBtn" type="button" hidden>ADMINISTRAR USUARIOS</button>
+  <button id="mtLogoutBtn" type="button">CERRAR SESIÓN</button>
+</div>
+
+<div id="mtAdminModal" hidden>
+  <div class="mt-admin-card">
+    <div class="mt-admin-head">
+      <div>
+        <div class="mt-login-brand" style="font-size:23px;margin:0">ADMIN <span>MT PRO</span></div>
+        <div class="mt-login-sub" id="mtAdminSummary" style="margin:4px 0 0">Cargando usuarios...</div>
+      </div>
+      <button type="button" id="mtAdminClose">CERRAR</button>
+    </div>
+    <div id="mtAdminMessage"></div>
+    <div class="mt-admin-table-wrap">
+      <table class="mt-admin-table">
+        <thead><tr><th>Persona</th><th>Usuario</th><th>Estado</th><th>Dispositivo</th><th>Último acceso</th><th>Acciones</th></tr></thead>
+        <tbody id="mtAdminUsers"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <header class="hero-header">
   <div class="brand-wrap">
     <img class="mt-logo" src="./mt-logo.png" alt="MT PRO"> 
@@ -5883,6 +6020,166 @@ renderComparePlayer = function(slot){
   // Refresca nuevas listas al cargar/analizar archivos.
   const oldRender=window.renderDashboard;
   if(typeof oldRender==="function") window.renderDashboard=function(){const r=oldRender.apply(this,arguments);setTimeout(()=>{mtPopulateTeamCompare();mtRenderTeamComparison();if(typeof renderVenueAverages==="function")renderVenueAverages();},0);return r;};
+})();
+</script>
+
+
+<script id="mt-login-script">
+(function(){
+  // Pegá aquí la URL /exec de tu implementación de Google Apps Script.
+  const APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbynH1cYkTU3aaRZgBvXacaIZC9e1I7MxzvdP9aaUT4WG5QBXozhbj7SoY3PO8d3zN48/exec';
+  const TOKEN_KEY='mtpro_auth_token';
+  const USER_KEY='mtpro_auth_user';
+  const DEVICE_KEY='mtpro_device_id_v1';
+
+  const $=id=>document.getElementById(id);
+  const gate=()=>$('mtLoginGate');
+  const actions=()=>$('mtSessionActions');
+  const err=()=>$('mtLoginError');
+  const configured=()=>/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec(?:\?.*)?$/.test(APPS_SCRIPT_URL);
+
+  function deviceId(){
+    let id=localStorage.getItem(DEVICE_KEY);
+    if(!id){
+      id=(crypto && crypto.randomUUID)?crypto.randomUUID():('dev-'+Date.now()+'-'+Math.random().toString(36).slice(2));
+      localStorage.setItem(DEVICE_KEY,id);
+    }
+    return id;
+  }
+  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  function setMessage(message,ok=false){ if(err()){err().style.color=ok?'#65f0aa':'#ff6b86';err().textContent=message||'';} }
+  function setBusy(btn,busy,label){if(!btn)return;if(busy){btn.dataset.label=btn.textContent;btn.disabled=true;btn.textContent=label||'PROCESANDO...';}else{btn.disabled=false;btn.textContent=btn.dataset.label||btn.textContent;}}
+  function setCurrentUser(user){sessionStorage.setItem(USER_KEY,JSON.stringify(user||{}));}
+  function getCurrentUser(){try{return JSON.parse(sessionStorage.getItem(USER_KEY)||'{}')}catch(_){return {}}}
+
+  async function api(payload){
+    if(!configured()) throw new Error('Falta conectar Google Apps Script. Reemplazá PASTE_APPS_SCRIPT_WEB_APP_URL_HERE por la URL /exec.');
+    const res=await fetch(APPS_SCRIPT_URL,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
+    if(!res.ok) throw new Error('No se pudo conectar con el servidor de acceso.');
+    const text=await res.text();
+    try{return JSON.parse(text)}catch(_){throw new Error('El servidor devolvió una respuesta no válida. Revisá la implementación de Apps Script.');}
+  }
+
+  function unlock(user){
+    document.body.classList.remove('mt-auth-locked');
+    if(gate()) gate().hidden=true;
+    if(actions()) actions().hidden=false;
+    if($('mtAdminBtn')) $('mtAdminBtn').hidden=!(user&&user.role==='ADMIN');
+  }
+  function lock(message=''){
+    sessionStorage.removeItem(TOKEN_KEY);sessionStorage.removeItem(USER_KEY);
+    document.body.classList.add('mt-auth-locked');
+    if(gate()) gate().hidden=false;
+    if(actions()) actions().hidden=true;
+    if($('mtAdminModal')) $('mtAdminModal').hidden=true;
+    showTab('login');
+    setMessage(message);
+    setTimeout(()=>$('mtLoginUser')?.focus(),30);
+  }
+  function showTab(which){
+    const isLogin=which==='login';
+    if($('mtLoginForm')) $('mtLoginForm').hidden=!isLogin;
+    if($('mtRegisterForm')) $('mtRegisterForm').hidden=isLogin;
+    $('mtTabLogin')?.classList.toggle('active',isLogin);
+    $('mtTabRegister')?.classList.toggle('active',!isLogin);
+    setMessage('');
+    setTimeout(()=>$(isLogin?'mtLoginUser':'mtRegName')?.focus(),20);
+  }
+  function fmtDate(v){
+    if(!v)return '—';
+    const d=new Date(v);if(isNaN(d))return esc(v);
+    return d.toLocaleString('es-AR',{dateStyle:'short',timeStyle:'short'});
+  }
+
+  async function validateExisting(){
+    const token=sessionStorage.getItem(TOKEN_KEY);
+    if(!token){lock();return;}
+    try{
+      const r=await api({action:'validate',token});
+      if(!r.ok){lock(r.message||'La sesión ya no es válida.');return;}
+      setCurrentUser(r.user);unlock(r.user);
+    }catch(e){lock(e.message);}
+  }
+
+  async function refreshAdmin(){
+    const tbody=$('mtAdminUsers'), msg=$('mtAdminMessage');
+    if(!tbody)return;
+    tbody.innerHTML='<tr><td colspan="6">Cargando...</td></tr>';
+    msg.textContent='';
+    try{
+      const r=await api({action:'listUsers',token:sessionStorage.getItem(TOKEN_KEY)});
+      if(!r.ok){msg.style.color='#ff8299';msg.textContent=r.message||'No autorizado.';return;}
+      $('mtAdminSummary').textContent=`Usuarios habilitados: ${r.activeCount}/${r.maxActive} · Las nuevas cuentas quedan PENDIENTES hasta tu aprobación.`;
+      if(!r.users.length){tbody.innerHTML='<tr><td colspan="6">Todavía no hay usuarios registrados.</td></tr>';return;}
+      tbody.innerHTML=r.users.map(u=>{
+        const approve=u.status==='PENDING'?`<button data-act="APPROVE" data-id="${esc(u.id)}">APROBAR</button>`:'';
+        const block=u.status==='ACTIVE'?`<button data-act="BLOCK" data-id="${esc(u.id)}">BLOQUEAR</button>`:'';
+        const enable=u.status==='BLOCKED'?`<button data-act="ENABLE" data-id="${esc(u.id)}">HABILITAR</button>`:'';
+        return `<tr>
+          <td><strong>${esc(u.nombre)}</strong><small>${esc(u.email||'Sin email')}</small></td>
+          <td>${esc(u.usuario)}<small>Alta: ${fmtDate(u.createdAt)}</small></td>
+          <td><span class="mt-status ${esc(u.status)}">${esc(u.status)}</span></td>
+          <td>${u.deviceBound?'VINCULADO':'LIBRE'}</td>
+          <td>${fmtDate(u.lastAccess)}</td>
+          <td><div class="mt-admin-actions">${approve}${block}${enable}<button data-act="RESET_DEVICE" data-id="${esc(u.id)}">LIBERAR DISPOSITIVO</button><button data-act="DELETE" data-id="${esc(u.id)}">ELIMINAR</button></div></td>
+        </tr>`;
+      }).join('');
+    }catch(e){tbody.innerHTML='<tr><td colspan="6">Error al cargar usuarios.</td></tr>';msg.style.color='#ff8299';msg.textContent=e.message;}
+  }
+
+  async function doAdminAction(action,id,button){
+    const labels={APPROVE:'aprobar',BLOCK:'bloquear',ENABLE:'habilitar',RESET_DEVICE:'liberar el dispositivo de',DELETE:'eliminar'};
+    if(!confirm(`¿Querés ${labels[action]||'modificar'} este usuario?`))return;
+    setBusy(button,true,'...');
+    try{
+      const r=await api({action:'adminAction',adminAction:action,userId:id,token:sessionStorage.getItem(TOKEN_KEY)});
+      const msg=$('mtAdminMessage');msg.style.color=r.ok?'#65f0aa':'#ff8299';msg.textContent=r.message||'';
+      if(r.ok)await refreshAdmin();
+    }catch(e){const msg=$('mtAdminMessage');msg.style.color='#ff8299';msg.textContent=e.message;}
+    finally{setBusy(button,false);}
+  }
+
+  document.addEventListener('DOMContentLoaded',function(){
+    deviceId();
+    $('mtTabLogin')?.addEventListener('click',()=>showTab('login'));
+    $('mtTabRegister')?.addEventListener('click',()=>showTab('register'));
+
+    document.querySelectorAll('.mt-login-show').forEach(show=>show.addEventListener('click',function(){
+      const pass=$(this.dataset.pass);if(!pass)return;const visible=pass.type==='text';pass.type=visible?'password':'text';this.textContent=visible?'VER':'OCULTAR';pass.focus();
+    }));
+
+    $('mtLoginForm')?.addEventListener('submit',async function(e){
+      e.preventDefault();
+      const btn=$('mtLoginSubmit');setBusy(btn,true,'INGRESANDO...');setMessage('');
+      try{
+        const r=await api({action:'login',usuario:$('mtLoginUser').value,password:$('mtLoginPass').value,deviceId:deviceId()});
+        if(!r.ok){setMessage(r.message||'No se pudo ingresar.');return;}
+        sessionStorage.setItem(TOKEN_KEY,r.token);setCurrentUser(r.user);$('mtLoginPass').value='';unlock(r.user);
+      }catch(ex){setMessage(ex.message);}finally{setBusy(btn,false);}
+    });
+
+    $('mtRegisterForm')?.addEventListener('submit',async function(e){
+      e.preventDefault();
+      const btn=$('mtRegisterSubmit');setBusy(btn,true,'ENVIANDO...');setMessage('');
+      try{
+        const r=await api({action:'register',nombre:$('mtRegName').value,usuario:$('mtRegUser').value,email:$('mtRegEmail').value,password:$('mtRegPass').value,deviceId:deviceId()});
+        if(!r.ok){setMessage(r.message||'No se pudo crear la cuenta.');return;}
+        const u=$('mtRegUser').value;$('mtRegisterForm').reset();showTab('login');$('mtLoginUser').value=u;setMessage(r.message,true);
+      }catch(ex){setMessage(ex.message);}finally{setBusy(btn,false);}
+    });
+
+    $('mtLogoutBtn')?.addEventListener('click',()=>lock('Sesión cerrada.'));
+    $('mtAdminBtn')?.addEventListener('click',()=>{$('mtAdminModal').hidden=false;refreshAdmin();});
+    $('mtAdminClose')?.addEventListener('click',()=>{$('mtAdminModal').hidden=true;});
+    $('mtAdminModal')?.addEventListener('click',e=>{if(e.target===$('mtAdminModal'))$('mtAdminModal').hidden=true;});
+    $('mtAdminUsers')?.addEventListener('click',e=>{const b=e.target.closest('button[data-act]');if(b)doAdminAction(b.dataset.act,b.dataset.id,b);});
+
+    if(!configured()){
+      lock('CONFIGURACIÓN PENDIENTE: pegá la URL /exec de Google Apps Script en el HTML antes de subirlo a Vercel.');
+    }else{
+      validateExisting();
+    }
+  });
 })();
 </script>
 
