@@ -1064,6 +1064,15 @@ main{
   @media(max-width:560px){#mtSessionActions{left:10px;right:10px;bottom:10px}.mt-admin-card{padding:14px}.mt-admin-head{align-items:flex-start}.mt-auth-tabs{grid-template-columns:1fr}}
 </style>
 
+
+<style id="mt-scout-expanded-stats">
+#mtScoutRanking .mt-scout-player{grid-template-columns:58px minmax(240px,1.8fr) repeat(10,minmax(58px,.55fr));gap:10px;align-items:center}
+#mtScoutRanking .mt-scout-stat{text-align:center;min-width:0}
+#mtScoutRanking .mt-scout-stat b{display:block}
+#mtScoutRanking .mt-scout-stat span{display:block;font-size:10px;opacity:.8}
+@media(max-width:1200px){#mtScoutRanking .mt-scout-player{grid-template-columns:50px minmax(210px,1fr) repeat(5,minmax(55px,.55fr));}.mt-scout-stat:nth-last-child(-n+5){display:none}}
+@media(max-width:760px){#mtScoutRanking .mt-scout-player{grid-template-columns:44px 1fr repeat(2,58px)}#mtScoutRanking .mt-scout-stat{display:none}#mtScoutRanking .mt-scout-stat:nth-of-type(1),#mtScoutRanking .mt-scout-stat:nth-of-type(2){display:block}}
+</style>
 </head>
 
 <body class="mt-auth-locked">
@@ -1145,7 +1154,7 @@ main{
   <button type="button" class="mt-view-btn active" data-view="team" onclick="mtSetWorkspaceView('team')">EQUIPO</button>
   <button type="button" class="mt-view-btn" data-view="individual" onclick="mtSetWorkspaceView('individual')">INDIVIDUAL Y<br>COMPARACIONES</button>
   <button type="button" class="mt-view-btn" data-view="scouting" onclick="mtSetWorkspaceView('scouting')">INFORME DE<br>SCOUTING</button>
-  <button type="button" class="mt-view-btn" data-view="advanced" onclick="mtSetWorkspaceView('advanced')">ESTATS<br>AVANZADAS</button>
+  <button type="button" class="mt-view-btn" data-view="advanced" onclick="mtSetWorkspaceView('advanced')">STATS<br>AVANZADAS</button>
 </nav>
 
   </div>
@@ -1177,19 +1186,23 @@ main{
 
   <section class="grid">
     <div class="card">
-      <div class="metric-title">Plays totales</div>
+      <div class="metric-title">Posesiones</div>
       <div class="metric-value" id="mPlays">-</div>
+      <div class="metric-note">Promedio por partido</div>
       
     </div>
     <div class="card">
       <div class="metric-title">Puntos</div>
-      <div class="metric-value" id="mPts">-</div>
-      <div class="metric-note">Puntos acumulados</div>
+      <div class="metric-value" style="font-size:28px; line-height:1.35">
+        <div><span id="mPts">-</span> <small style="font-size:14px;font-weight:500">a favor</small></div>
+        <div><span id="mPtsAgainst">-</span> <small style="font-size:14px;font-weight:500">en contra</small></div>
+      </div>
+      <div class="metric-note">Promedio por partido</div>
     </div>
     <div class="card">
       <div class="metric-title">PPP</div>
       <div class="metric-value" id="mPPP">-</div>
-      <div class="metric-note">Puntos por Play</div>
+      <div class="metric-note">Puntos por posesión</div>
     </div>
     <div class="card">
       <div class="metric-title">eFG%</div>
@@ -1197,110 +1210,6 @@ main{
       <div class="metric-note">Porcentaje Efectivo de Tiro de Campo</div>
     </div>
   </section>
-  </section>
-
-  <h2 class="section-title">☆ Comparativas entre equipos cargados ☆</h2>
-  <section class="comparison-grid">
-    <div class="card">
-      <h3>Comparativa ofensiva</h3>
-      <div class="table-wrap mini-table">
-        <table id="comparisonTable">
-          <thead>
-            <tr>
-              <th>Equipo</th>
-              <th>PTS</th>
-              <th>RD</th>
-              <th>RO</th>
-              <th>REB</th>
-              <th>Plays</th>
-              <th>PPP</th>
-              <th>eFG%</th>
-              <th>PER</th>
-              <th>VAL</th>
-              <th>+/-</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
-    <div class="card">
-      <h3>PPP por equipo</h3>
-      <canvas id="chartTeamPPP"></canvas>
-    </div>
-    <div class="card">
-      <h3>Eficiencia de tiro por equipo</h3>
-      <canvas id="chartTeamEFG"></canvas>
-    </div>
-
-    <div class="card mt-avg-card">
-      <h3>Promedios por condición</h3>
-      <p class="status">Elegí un equipo y si querés analizar sus partidos de LOCAL, VISITANTE o TODOS. La condición se lee directamente del nombre de cada archivo: el equipo antes de “vs” es LOCAL y el equipo después de “vs” es VISITANTE. El filtro se aplica sobre el equipo seleccionado.</p>
-
-      <div class="mt-avg-controls">
-        <label class="status"><b>Equipo</b>
-          <select id="avgTeamSelect" onchange="renderVenueAverages()">
-            <option value="">Seleccionar equipo</option>
-          </select>
-        </label>
-
-        <label class="status"><b>Condición</b>
-          <select id="avgVenueSelect" onchange="renderVenueAverages()">
-            <option value="TODOS">TODOS</option>
-            <option value="LOCAL">LOCAL</option>
-            <option value="VISITANTE">VISITANTE</option>
-          </select>
-        </label>
-
-        <label class="status"><b>Resultado</b>
-          <select id="avgResultSelect" onchange="renderVenueAverages()">
-            <option value="TODOS">TODOS</option>
-            <option value="GANADOS">GANADOS</option>
-            <option value="PERDIDOS">PERDIDOS</option>
-          </select>
-        </label>
-      </div>
-
-      <div id="avgVenueInfo" class="status">Cargá partidos y seleccioná un equipo.</div>
-
-      <div class="table-wrap mt-avg-table-wrap">
-        <table id="avgVenueTable">
-          <thead>
-            <tr>
-              <th>Equipo / Jugador</th>
-              <th>PJ</th>
-              <th>MIN</th>
-              <th>PTS</th>
-              <th>2P</th>
-              <th>2P%</th>
-              <th>3P</th>
-              <th>3P%</th>
-              <th>TL</th>
-              <th>TL%</th>
-              <th>RD</th>
-              <th>RO</th>
-              <th>REB</th>
-              <th>AST</th>
-              <th>REC</th>
-              <th>PER</th>
-              <th>TAP TC</th>
-              <th>TAP TR</th>
-              <th>FC</th>
-              <th>FR</th>
-              <th>VAL</th>
-              <th>+/-</th>
-              <th>Plays</th>
-              <th>PPP</th>
-              <th>eFG%</th>
-              <th>% Plays 1P</th>
-              <th>% Plays 2P</th>
-              <th>% Plays 3P</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
   </section>
 
   <h2 class="section-title">Análisis individual por jugador</h2>
@@ -1374,6 +1283,78 @@ main{
     </div>
   </section>
 
+
+<section class="comparison-grid mt-view-block" data-mt-view="team">
+    <div class="card mt-avg-card">
+      <h3>Promedios por condición</h3>
+      <p class="status">Elegí un equipo y si querés analizar sus partidos de LOCAL, VISITANTE o TODOS. La condición se lee directamente del nombre de cada archivo: el equipo antes de “vs” es LOCAL y el equipo después de “vs” es VISITANTE. El filtro se aplica sobre el equipo seleccionado.</p>
+
+      <div class="mt-avg-controls">
+        <label class="status"><b>Equipo</b>
+          <select id="avgTeamSelect" onchange="renderVenueAverages()">
+            <option value="">Seleccionar equipo</option>
+          </select>
+        </label>
+
+        <label class="status"><b>Condición</b>
+          <select id="avgVenueSelect" onchange="renderVenueAverages()">
+            <option value="TODOS">TODOS</option>
+            <option value="LOCAL">LOCAL</option>
+            <option value="VISITANTE">VISITANTE</option>
+          </select>
+        </label>
+
+        <label class="status"><b>Resultado</b>
+          <select id="avgResultSelect" onchange="renderVenueAverages()">
+            <option value="TODOS">TODOS</option>
+            <option value="GANADOS">GANADOS</option>
+            <option value="PERDIDOS">PERDIDOS</option>
+          </select>
+        </label>
+      </div>
+
+      <div id="avgVenueInfo" class="status">Cargá partidos y seleccioná un equipo.</div>
+
+      <div class="table-wrap mt-avg-table-wrap">
+        <table id="avgVenueTable">
+          <thead>
+            <tr>
+              <th>Equipo / Jugador</th>
+              <th>PJ</th>
+              <th>MIN</th>
+              <th>PTS</th>
+              <th>2P</th>
+              <th>2P%</th>
+              <th>3P</th>
+              <th>3P%</th>
+              <th>TL</th>
+              <th>TL%</th>
+              <th>RD</th>
+              <th>RO</th>
+              <th>REB</th>
+              <th>AST</th>
+              <th>REC</th>
+              <th>PER</th>
+              <th>TAP TC</th>
+              <th>TAP TR</th>
+              <th>FC</th>
+              <th>FR</th>
+              <th>VAL</th>
+              <th>+/-</th>
+              <th>Plays</th>
+              <th>PPP</th>
+              <th>eFG%</th>
+              <th>% Plays 1P</th>
+              <th>% Plays 2P</th>
+              <th>% Plays 3P</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+</section>
 
 <h2 class="section-title mt-view-block" data-mt-view="team">Comparación entre equipos</h2>
 <section id="mtTeamCompareSection" class="team-compare-grid mt-view-block" data-mt-view="team">
@@ -2705,8 +2686,14 @@ function populatePlayerSelect(){
 }
 
 function renderComparisons(){
+  // La comparativa global fue eliminada de la interfaz.
+  // Este guard evita que la carga de PDF/Excel/imagen falle al intentar renderizarla.
+  const comparisonTable = $("comparisonTable");
+  const chartPPP = $("chartTeamPPP");
+  const chartEFG = $("chartTeamEFG");
+  if(!comparisonTable || !chartPPP || !chartEFG) return;
   const {teams} = getAllAggregatedRows();
-  const tbody = $("comparisonTable").querySelector("tbody");
+  const tbody = comparisonTable.querySelector("tbody");
   tbody.innerHTML = teams
     .slice()
     .sort((a,b)=>b.ppp-a.ppp)
@@ -3867,10 +3854,40 @@ renderDashboard = function(){
   const {teams, players} = getSelectedRows();
   const main = teams[0] || calcRow({pts:0,t2m:0,t2a:0,t3m:0,t3a:0,tlm:0,tla:0,per:0});
 
-  $('mPlays').textContent = num(main.plays,1);
-  $('mPts').textContent = main.pts || 0;
-  $('mPPP').textContent = num(main.ppp,3);
-  $('mEFG').textContent = num(main.efg,1) + '%';
+  // Tarjetas principales: todos los valores se muestran como promedios de los partidos cargados.
+  const selectedTeam = $('teamSelect')?.value || main.team || '';
+  const rowsForDashboard = (typeof mtPassDateFilter === 'function') ? allPlayers.filter(mtPassDateFilter) : allPlayers.slice();
+  const gameTeamMap = {};
+  rowsForDashboard.forEach(r => {
+    const game = String(r.gameId || r.sourceName || r.source || 'SIN_PARTIDO');
+    const team = String(r.team || '').trim();
+    if(!team) return;
+    const key = game + '||' + team;
+    if(!gameTeamMap[key]) gameTeamMap[key] = {game,team,pts:0,t2m:0,t2a:0,t3m:0,t3a:0,tlm:0,tla:0,per:0};
+    const a = gameTeamMap[key];
+    a.pts += Number(r.pts||0); a.t2m += Number(r.t2m||0); a.t2a += Number(r.t2a||0);
+    a.t3m += Number(r.t3m||0); a.t3a += Number(r.t3a||0); a.tlm += Number(r.tlm||0);
+    a.tla += Number(r.tla||0); a.per += Number(r.per||0);
+  });
+  const gameTeams = Object.values(gameTeamMap).map(calcRow);
+  const mine = selectedTeam ? gameTeams.filter(x=>x.team===selectedTeam) : [];
+  const gp = mine.length || (main.gamesCount || 1);
+  const avgPoss = mine.length ? mine.reduce((s,x)=>s+x.plays,0)/gp : main.plays/gp;
+  const avgPF = mine.length ? mine.reduce((s,x)=>s+x.pts,0)/gp : main.pts/gp;
+  let paTotal = 0, paGames = 0;
+  mine.forEach(x=>{
+    const opps = gameTeams.filter(o=>o.game===x.game && o.team!==x.team);
+    if(opps.length){ paTotal += opps.reduce((s,o)=>s+o.pts,0); paGames++; }
+  });
+  const avgPA = paGames ? paTotal/paGames : 0;
+  const avgPPP = mine.length ? mine.reduce((s,x)=>s+x.ppp,0)/gp : main.ppp;
+  const avgEFG = mine.length ? mine.reduce((s,x)=>s+x.efg,0)/gp : main.efg;
+
+  $('mPlays').textContent = num(avgPoss,1);
+  $('mPts').textContent = num(avgPF,1);
+  if($('mPtsAgainst')) $('mPtsAgainst').textContent = paGames ? num(avgPA,1) : '-';
+  $('mPPP').textContent = num(avgPPP,3);
+  $('mEFG').textContent = num(avgEFG,1) + '%';
 
   renderTeamTable(teams);
   renderPlayerTable(players);
@@ -5462,7 +5479,7 @@ renderComparePlayer = function(slot){
     rows.forEach(p=>{
       const name = p.player || "Sin nombre";
       if(!by[name]){
-        by[name] = {player:name,games:new Set(),min:0,pts:0,t2m:0,t2a:0,t3m:0,t3a:0,tlm:0,tla:0,rd:0,ro:0,reb:0,ast:0,rec:0,per:0,val:0,pm:0};
+        by[name] = {player:name,games:new Set(),min:0,pts:0,t2m:0,t2a:0,t3m:0,t3a:0,tlm:0,tla:0,rd:0,ro:0,reb:0,ast:0,rec:0,per:0,tapTC:0,val:0,pm:0};
       }
       const a=by[name];
       if(p.gameId) a.games.add(p.gameId);
@@ -5473,7 +5490,7 @@ renderComparePlayer = function(slot){
       a.tlm += n(p.tlm); a.tla += n(p.tla);
       a.rd += n(p.rd); a.ro += n(p.ro);
       a.reb += n(p.reb || (n(p.rd)+n(p.ro)));
-      a.ast += n(p.ast); a.rec += n(p.rec); a.per += n(p.per);
+      a.ast += n(p.ast); a.rec += n(p.rec); a.per += n(p.per); a.tapTC += n(p.tapTC);
       a.val += n(p.val); a.pm += n(p.pm);
     });
     const list = Object.values(by).map(a=>{
@@ -5487,6 +5504,9 @@ renderComparePlayer = function(slot){
         rpg:a.reb/gp,
         apg:a.ast/gp,
         topg:a.per/gp,
+        spg:a.rec/gp,
+        bpg:a.tapTC/gp,
+        fgmPg:(a.t2m+a.t3m)/gp,
         t2pct:percent(a.t2m,a.t2a),
         t3pct:percent(a.t3m,a.t3a),
         ftpct:percent(a.tlm,a.tla),
@@ -5500,7 +5520,9 @@ renderComparePlayer = function(slot){
       };
     });
 
-    const metrics = ["ppg","playsPg","fgaPg","efg","ppp","apg","rpg"];
+    // Prioridad defensiva: combina producción, eficiencia, volumen y acciones de impacto.
+    // Las pérdidas reducen la amenaza porque representan posesiones desperdiciadas.
+    const metrics = ["ppg","fgaPg","t2pct","t3pct","ftpct","rpg","spg","bpg"];
     const ranges = {};
     metrics.forEach(k=>{
       const vals=list.map(x=>n(x[k]));
@@ -5513,32 +5535,35 @@ renderComparePlayer = function(slot){
     list.forEach(x=>{
       const turnoverPenalty = Math.min(1, x.topg / Math.max(1,x.playsPg));
       x.threat = 100 * (
-        .31*z(x.ppg,"ppg") +
-        .21*z(x.playsPg,"playsPg") +
-        .14*z(x.fgaPg,"fgaPg") +
-        .14*z(x.efg,"efg") +
-        .08*z(x.ppp,"ppp") +
-        .07*z(x.apg,"apg") +
-        .05*z(x.rpg,"rpg")
-      ) * (1 - .10*turnoverPenalty);
+        .30*z(x.ppg,"ppg") +
+        .16*z(x.fgaPg,"fgaPg") +
+        .12*z(x.t2pct,"t2pct") +
+        .12*z(x.t3pct,"t3pct") +
+        .05*z(x.ftpct,"ftpct") +
+        .10*z(x.rpg,"rpg") +
+        .08*z(x.spg,"spg") +
+        .07*z(x.bpg,"bpg")
+      ) * (1 - .12*turnoverPenalty);
     });
     list.sort((a,b)=>b.threat-a.threat || b.ppg-a.ppg);
     return list;
   }
 
   function teamSummary(players, gamesCount){
-    const s={pts:0,t2m:0,t2a:0,t3m:0,t3a:0,tlm:0,tla:0,reb:0,ast:0,per:0};
+    const s={pts:0,t2m:0,t2a:0,t3m:0,t3a:0,tlm:0,tla:0,reb:0,ast:0,rec:0,per:0,tapTC:0};
     players.forEach(p=>{
       s.pts+=p.pts;s.t2m+=p.t2m;s.t2a+=p.t2a;s.t3m+=p.t3m;s.t3a+=p.t3a;
-      s.tlm+=p.tlm;s.tla+=p.tla;s.reb+=p.reb;s.ast+=p.ast;s.per+=p.per;
+      s.tlm+=p.tlm;s.tla+=p.tla;s.reb+=p.reb;s.ast+=p.ast;s.rec+=p.rec;s.per+=p.per;s.tapTC+=p.tapTC;
     });
     const gp=Math.max(1,gamesCount);
     const fga=s.t2a+s.t3a;
+    const fgm=s.t2m+s.t3m;
     const plays=fga+.44*s.tla+s.per;
     return {
-      ppg:s.pts/gp, reb:s.reb/gp, ast:s.ast/gp, tov:s.per/gp,
+      ppg:s.pts/gp, reb:s.reb/gp, ast:s.ast/gp, stl:s.rec/gp, blk:s.tapTC/gp, tov:s.per/gp,
+      fgm:fgm/gp, fga:fga/gp,
       efg:fga?100*(s.t2m+1.5*s.t3m)/fga:0,
-      t2pct:percent(s.t2m,s.t2a), t3pct:percent(s.t3m,s.t3a),
+      t2pct:percent(s.t2m,s.t2a), t3pct:percent(s.t3m,s.t3a), ftpct:percent(s.tlm,s.tla),
       ppp:plays?s.pts/plays:0, t3share:fga?100*s.t3a/fga:0
     };
   }
@@ -5565,6 +5590,17 @@ renderComparePlayer = function(slot){
     if(p.rpg >= 7){
       tags.push("Reboteador");
       advice.push("Asignar contacto de bloqueo apenas sale el tiro; no liberar al defensor antes de asegurar rebote.");
+    }
+    if(p.spg >= 1.8){
+      tags.push("Genera robos");
+      advice.push("Cuidar líneas de pase y evitar pases blandos cerca suyo; usar fintas antes de soltar el balón.");
+    }
+    if(p.bpg >= 1.5){
+      tags.push("Protector del aro");
+      advice.push("Atacarlo con ventaja, fintas y descarga; evitar finalizaciones previsibles directamente sobre su verticalidad.");
+    }
+    if(p.topg >= 3){
+      advice.push("Sus pérdidas sugieren subir presión y variar ángulos defensivos para forzar decisiones rápidas.");
     }
     if(p.efg < 43 && p.fgaPg >= 7){
       tags.push("Alto volumen / baja eficiencia");
@@ -5615,7 +5651,7 @@ renderComparePlayer = function(slot){
     sumEl.innerHTML=`
       <div class="mt-scout-summary">
         <div class="mt-scout-metric"><div class="k">PTS / partido</div><div class="v">${f(ts.ppg,1)}</div></div>
-        <div class="mt-scout-metric"><div class="k">PPP estimado</div><div class="v">${f(ts.ppp,3)}</div></div>
+        <div class="mt-scout-metric"><div class="k">PUNTOS POR POSESIÓN ESTIMADO</div><div class="v">${f(ts.ppp,3)}</div></div>
         <div class="mt-scout-metric"><div class="k">eFG%</div><div class="v">${f(ts.efg,1)}%</div></div>
         <div class="mt-scout-metric"><div class="k">3PA / tiros de campo</div><div class="v">${f(ts.t3share,1)}%</div></div>
       </div>`;
@@ -5634,28 +5670,35 @@ renderComparePlayer = function(slot){
           <div class="mt-threatbar"><i style="width:${Math.max(4,Math.min(100,p.threat))}%"></i></div>
         </div>
         <div class="mt-scout-stat"><b>${f(p.ppg,1)}</b><span>PTS</span></div>
-        <div class="mt-scout-stat"><b>${f(p.efg,1)}%</b><span>eFG</span></div>
-        <div class="mt-scout-stat"><b>${f(p.t3pct,1)}%</b><span>3P</span></div>
-        <div class="mt-scout-stat mt-hide-sm"><b>${f(p.fgaPg,1)}</b><span>TCI</span></div>
-        <div class="mt-scout-stat mt-hide-md mt-hide-sm"><b>${f(p.apg,1)}</b><span>AST</span></div>
-        <div class="mt-scout-stat mt-hide-md mt-hide-sm"><b>${f(p.rpg,1)}</b><span>REB</span></div>
+        <div class="mt-scout-stat"><b>${f(p.t3pct,1)}%</b><span>3P%</span></div>
+        <div class="mt-scout-stat"><b>${f(p.t2pct,1)}%</b><span>2P%</span></div>
+        <div class="mt-scout-stat"><b>${f(p.ftpct,1)}%</b><span>TL%</span></div>
+        <div class="mt-scout-stat"><b>${f(p.fgmPg,1)}</b><span>TCC</span></div>
+        <div class="mt-scout-stat"><b>${f(p.fgaPg,1)}</b><span>TCI</span></div>
+        <div class="mt-scout-stat"><b>${f(p.rpg,1)}</b><span>REB</span></div>
+        <div class="mt-scout-stat"><b>${f(p.spg,1)}</b><span>ROB</span></div>
+        <div class="mt-scout-stat"><b>${f(p.bpg,1)}</b><span>TAP</span></div>
+        <div class="mt-scout-stat"><b>${f(p.topg,1)}</b><span>PER</span></div>
       </div>`;
     }).join("");
 
     const top=players.slice(0,Math.min(4,players.length));
     let general=[];
-    if(ts.t3share >= 38) general.push(`El rival tiene perfil exterior: ${f(ts.t3share,1)}% de sus intentos de campo son de 3 puntos. Priorizar closeouts cortos y controlados.`);
-    else general.push(`El rival tiene mayor peso en 2P: sólo ${f(ts.t3share,1)}% de sus tiros de campo son triples. Proteger pintura sin regalar tiros abiertos.`);
-    if(ts.tov >= 14) general.push(`Promedia ${f(ts.tov,1)} pérdidas: hay margen para subir presión sobre primera recepción y líneas de pase.`);
-    if(ts.efg >= 52) general.push(`eFG% alto (${f(ts.efg,1)}%): no conviene conceder tiros en ritmo; la calidad del primer closeout es prioritaria.`);
-    if(ts.reb >= 35) general.push(`Carga importante de rebote (${f(ts.reb,1)} por partido): terminar cada defensa con bloqueo de rebote.`);
+    general.push(`Producción: ${f(ts.ppg,1)} PTS por partido y ${f(ts.ppp,3)} puntos por posesión estimados.`);
+    general.push(`Tiro: ${f(ts.fgm,1)} TC convertidos sobre ${f(ts.fga,1)} intentados por partido; 2P ${f(ts.t2pct,1)}%, 3P ${f(ts.t3pct,1)}% y TL ${f(ts.ftpct,1)}%.`);
+    if(ts.t3share >= 38) general.push(`Perfil exterior: ${f(ts.t3share,1)}% de sus intentos de campo son triples. Priorizar closeouts controlados y negar tiros en ritmo.`);
+    else general.push(`Predominio de 2P: ${f(ts.t3share,1)}% de sus tiros de campo son triples. Priorizar protección de pintura y ayudas cortas.`);
+    general.push(`Posesiones extra/defensa: ${f(ts.reb,1)} REB, ${f(ts.stl,1)} ROB y ${f(ts.blk,1)} TAP por partido.`);
+    general.push(`Manejo del balón: ${f(ts.tov,1)} pérdidas por partido${ts.tov >= 14 ? "; hay margen para aumentar presión sobre recepción y líneas de pase" : "; conviene presionar con disciplina sin romper la estructura defensiva"}.`);
+    if(ts.efg >= 52) general.push(`Eficiencia alta: eFG% ${f(ts.efg,1)}%. La prioridad es bajar la calidad del primer tiro y evitar ventajas tempranas.`);
+    if(ts.reb >= 35) general.push(`Rebote relevante: cerrar cada posesión con bloqueo y contacto antes de salir en transición.`);
 
     planEl.className="";
     planEl.innerHTML = `
       ${top.map((p,i)=>{
         const ta=typeAndAdvice(p);
         return `<div class="mt-scout-top-card">
-          <strong>#${i+1} ${esc(p.player)}</strong> — ${f(p.ppg,1)} PTS · ${f(p.efg,1)}% eFG · ${f(p.playsPg,1)} Plays
+          <strong>#${i+1} ${esc(p.player)}</strong> — ${f(p.ppg,1)} PTS · 2P ${f(p.t2pct,1)}% · 3P ${f(p.t3pct,1)}% · TL ${f(p.ftpct,1)}% · ${f(p.fgmPg,1)}/${f(p.fgaPg,1)} TC · ${f(p.rpg,1)} REB · ${f(p.spg,1)} ROB · ${f(p.bpg,1)} TAP · ${f(p.topg,1)} PER
           <div class="why"><b>Lectura:</b> ${esc(ta.tag)}. ${esc(ta.advice[0])}</div>
         </div>`;
       }).join("")}
@@ -5985,14 +6028,21 @@ renderComparePlayer = function(slot){
     const rr=rows().filter(p=>p.team===team&&datePass(p,slot));
     if(!rr.length) return null;
     const games=[...new Set(rr.map(p=>p.gameId).filter(Boolean))]; const d=Math.max(1,games.length);
-    const t={team,gamesCount:games.length,pts:0,t2m:0,t2a:0,t3m:0,t3a:0,tlm:0,tla:0,rd:0,ro:0,reb:0,ast:0,rec:0,per:0,tapTC:0,tapTR:0,fc:0,fr:0,val:0,pm:0};
+    const t={team,gamesCount:games.length,pts:0,ptsAgainst:0,t2m:0,t2a:0,t3m:0,t3a:0,tlm:0,tla:0,rd:0,ro:0,reb:0,ast:0,rec:0,per:0,tapTC:0,tapTR:0,fc:0,fr:0,val:0,pm:0};
     rr.forEach(p=>{["pts","t2m","t2a","t3m","t3a","tlm","tla","rd","ro","reb","ast","rec","per","tapTC","tapTR","fc","fr","val","pm"].forEach(k=>t[k]+=N(p[k]));});
     // Conteos mostrados como promedio por partido; porcentajes/PPP/eFG a partir de totales.
     const totals={...t}; const calc=calcRow({...totals});
     ["pts","t2m","t2a","t3m","t3a","tlm","tla","rd","ro","reb","ast","rec","per","tapTC","tapTR","fc","fr","val","pm"].forEach(k=>t[k]/=d);
     t.plays=calc.plays/d;t.ppp=calc.ppp;t.efg=calc.efg;t.fin1=calc.fin1;t.fin2=calc.fin2;t.fin3=calc.fin3;
     t.t2pct=totals.t2a?100*totals.t2m/totals.t2a:0;t.t3pct=totals.t3a?100*totals.t3m/totals.t3a:0;t.tlpct=totals.tla?100*totals.tlm/totals.tla:0;
-    let wins=0,losses=0;games.forEach(g=>{const r=resultForGame(g,team);if(r==="GANADOS")wins++;else if(r==="PERDIDOS")losses++;});t.wins=wins;t.losses=losses;
+    let wins=0,losses=0;
+    const scoreMap=gameTeamPoints();
+    games.forEach(g=>{
+      const r=resultForGame(g,team);if(r==="GANADOS")wins++;else if(r==="PERDIDOS")losses++;
+      const opp=Object.values(scoreMap).find(x=>x.gameId===g && x.team!==team);
+      if(opp) t.ptsAgainst += N(opp.pts);
+    });
+    t.ptsAgainst/=d;t.wins=wins;t.losses=losses;
     return t;
   }
   function better(slot,metric,val){
@@ -6001,13 +6051,13 @@ renderComparePlayer = function(slot){
   }
   function teamHTML(t,slot){
     const c=(label,m,v,txt=v)=>`<div class="${better(slot,m,v)}"><span>${label}:</span> ${txt}</div>`;
-    return `<div class="mt-team-compare-box"><b>${E(t.team)}</b><span class="mt-team-result-badge win">${t.wins} G</span><span class="mt-team-result-badge loss">${t.losses} P</span><br><span>Promedios por partido (${t.gamesCount} PJ)</span><div class="mt-team-compare-grid">${c("PTS","pts",t.pts,F(t.pts,1))}${c("2P%","t2pct",t.t2pct,F(t.t2pct,1)+"%")}${c("3P%","t3pct",t.t3pct,F(t.t3pct,1)+"%")}${c("TL%","tlpct",t.tlpct,F(t.tlpct,1)+"%")}${c("RD","rd",t.rd,F(t.rd,1))}${c("RO","ro",t.ro,F(t.ro,1))}${c("REB","reb",t.reb,F(t.reb,1))}${c("AST","ast",t.ast,F(t.ast,1))}${c("REC","rec",t.rec,F(t.rec,1))}${c("PER","per",t.per,F(t.per,1))}${c("VAL","val",t.val,F(t.val,1))}${c("+/-","pm",t.pm,F(t.pm,1))}${c("Plays","plays",t.plays,F(t.plays,1))}${c("PPP","ppp",t.ppp,F(t.ppp,3))}${c("eFG%","efg",t.efg,F(t.efg,1)+"%")}</div></div>`;
+    return `<div class="mt-team-compare-box"><b>${E(t.team)}</b><span class="mt-team-result-badge win">${t.wins} G</span><span class="mt-team-result-badge loss">${t.losses} P</span><br><span>Promedios por partido (${t.gamesCount} PJ)</span><div class="mt-team-compare-grid">${c("PUNTOS A FAVOR","pts",t.pts,F(t.pts,1))}${c("PUNTOS EN CONTRA","ptsAgainst",t.ptsAgainst,F(t.ptsAgainst,1))}${c("2P%","t2pct",t.t2pct,F(t.t2pct,1)+"%")}${c("3P%","t3pct",t.t3pct,F(t.t3pct,1)+"%")}${c("TL%","tlpct",t.tlpct,F(t.tlpct,1)+"%")}${c("RD","rd",t.rd,F(t.rd,1))}${c("RO","ro",t.ro,F(t.ro,1))}${c("REB","reb",t.reb,F(t.reb,1))}${c("AST","ast",t.ast,F(t.ast,1))}${c("REC","rec",t.rec,F(t.rec,1))}${c("PER","per",t.per,F(t.per,1))}${c("TAPAS","tapTC",t.tapTC,F(t.tapTC,1))}${c("VAL","val",t.val,F(t.val,1))}${c("+/-","pm",t.pm,F(t.pm,1))}${c("POSESIONES","plays",t.plays,F(t.plays,1))}${c("PUNTOS/POS.","ppp",t.ppp,F(t.ppp,3))}${c("eFG%","efg",t.efg,F(t.efg,1)+"%")}</div></div>`;
   }
   function chart(slot,t){
     const id=`chartTeamCompare${slot}`,ctx=document.getElementById(id);if(!ctx||typeof Chart==="undefined")return;
     window.__mtTeamCompareCharts=window.__mtTeamCompareCharts||{}; if(window.__mtTeamCompareCharts[id]) window.__mtTeamCompareCharts[id].destroy();
     if(!t)return;
-    window.__mtTeamCompareCharts[id]=new Chart(ctx,{type:"bar",data:{labels:["PTS","REB","AST","REC","PPP x10","eFG%"],datasets:[{label:t.team,data:[t.pts,t.reb,t.ast,t.rec,t.ppp*10,t.efg]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+    window.__mtTeamCompareCharts[id]=new Chart(ctx,{type:"bar",data:{labels:["PTS","REB","AST","REC","TAPAS","Puntos/Pos. x10","eFG%"],datasets:[{label:t.team,data:[t.pts,t.reb,t.ast,t.rec,t.tapTC,t.ppp*10,t.efg]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
   }
   window.mtPopulateTeamCompare=function(){
     const teams=[...new Set(rows().map(p=>p.team).filter(Boolean))].sort();[1,2].forEach(slot=>{const sel=document.getElementById(`teamCompareSelect${slot}`);if(!sel)return;const cur=sel.value;sel.innerHTML='<option value="">Seleccionar equipo</option>'+teams.map(t=>`<option value="${E(t)}">${E(t)}</option>`).join('');if(teams.includes(cur))sel.value=cur;});
@@ -6183,5 +6233,76 @@ renderComparePlayer = function(slot){
 })();
 </script>
 
+
+<script>
+/* ===== MT PRO: PROMEDIOS EN INDIVIDUAL Y COMPARACIONES ===== */
+function mtAvgN(v, gp, dec=1){
+  const n = Number(v || 0) / Math.max(1, Number(gp || 1));
+  return num(n, dec);
+}
+function mtAvgShot(m, a, gp){
+  const g = Math.max(1, Number(gp || 1));
+  return `${num(Number(m||0)/g,1)}/${num(Number(a||0)/g,1)} (${num(pct(Number(m||0),Number(a||0)),1)}%)`;
+}
+function mtPlayerStatHTML(p){
+  const gp = Math.max(1, Number(p.gamesCount || 1));
+  const reb = Number(p.reb || (Number(p.rd||0)+Number(p.ro||0)));
+  return `
+    <div class="player-stat-box">
+      <b>${p.player}</b><br>
+      Equipo: ${p.team}<br>
+      <span style="opacity:.8">Promedios por partido (${gp} PJ)</span>
+      <div class="player-stat-grid">
+        <div><span>PJ:</span> ${gp}</div>
+        <div><span>MIN:</span> ${mtAvgN(p.min,gp,1)}</div>
+        <div><span>PTS:</span> ${mtAvgN(p.pts,gp,1)}</div>
+        <div><span>2P:</span> ${mtAvgShot(p.t2m,p.t2a,gp)}</div>
+        <div><span>3P:</span> ${mtAvgShot(p.t3m,p.t3a,gp)}</div>
+        <div><span>TL:</span> ${mtAvgShot(p.tlm,p.tla,gp)}</div>
+        <div><span>RD:</span> ${mtAvgN(p.rd,gp,1)}</div>
+        <div><span>RO:</span> ${mtAvgN(p.ro,gp,1)}</div>
+        <div><span>REB:</span> ${num(reb/gp,1)}</div>
+        <div><span>AST:</span> ${mtAvgN(p.ast,gp,1)}</div>
+        <div><span>REC:</span> ${mtAvgN(p.rec,gp,1)}</div>
+        <div><span>PER:</span> ${mtAvgN(p.per,gp,1)}</div>
+        <div><span>TAP TC:</span> ${mtAvgN(p.tapTC,gp,1)}</div>
+        <div><span>TAP TR:</span> ${mtAvgN(p.tapTR,gp,1)}</div>
+        <div><span>FC:</span> ${mtAvgN(p.fc,gp,1)}</div>
+        <div><span>FR:</span> ${mtAvgN(p.fr,gp,1)}</div>
+        <div><span>VAL:</span> ${mtAvgN(p.val,gp,1)}</div>
+        <div><span>+/-:</span> <b class="${mtPMClass(Number(p.pm||0)/gp)}">${num(Number(p.pm||0)/gp,1)}</b></div>
+        <div><span>POSESIONES:</span> ${mtAvgN(p.plays,gp,1)}</div>
+        <div><span>PUNTOS/POS.:</span> ${num(p.ppp,3)}</div>
+        <div><span>eFG%:</span> ${num(p.efg,1)}%</div>
+        <div><span>% POS. 1P:</span> ${num(p.fin1,1)}%</div>
+        <div><span>% POS. 2P:</span> ${num(p.fin2,1)}%</div>
+        <div><span>% POS. 3P:</span> ${num(p.fin3,1)}%</div>
+      </div>
+    </div>`;
+}
+
+renderPlayerTable = function(rows){
+  if(typeof mtV3SetHeaders === 'function') mtV3SetHeaders();
+  rows = rows.slice().sort((a,b)=> (Number(b.plays||0)/Math.max(1,b.gamesCount||1)) - (Number(a.plays||0)/Math.max(1,a.gamesCount||1)));
+  const tbody = $('playerTable').querySelector('tbody');
+  tbody.innerHTML = rows.map(r=>{
+    const gp=Math.max(1,Number(r.gamesCount||1));
+    const reb=Number(r.reb || (Number(r.rd||0)+Number(r.ro||0)));
+    const pm=Number(r.pm||0)/gp;
+    return `<tr>
+      <td><b>${r.player}</b></td><td>${r.team}</td><td>${gp}</td>
+      <td>${mtAvgN(r.min,gp,1)}</td><td>${mtAvgN(r.pts,gp,1)}</td>
+      <td>${mtAvgShot(r.t2m,r.t2a,gp)}</td><td>${mtAvgShot(r.t3m,r.t3a,gp)}</td><td>${mtAvgShot(r.tlm,r.tla,gp)}</td>
+      <td>${mtAvgN(r.rd,gp,1)}</td><td>${mtAvgN(r.ro,gp,1)}</td><td>${num(reb/gp,1)}</td>
+      <td>${mtAvgN(r.ast,gp,1)}</td><td>${mtAvgN(r.rec,gp,1)}</td><td>${mtAvgN(r.per,gp,1)}</td>
+      <td>${mtAvgN(r.tapTC,gp,1)}</td><td>${mtAvgN(r.tapTR,gp,1)}</td><td>${mtAvgN(r.fc,gp,1)}</td><td>${mtAvgN(r.fr,gp,1)}</td>
+      <td>${mtAvgN(r.val,gp,1)}</td><td class="${mtPMClass(pm)}">${num(pm,1)}</td>
+      <td>${mtAvgN(r.plays,gp,1)}</td><td>${num(r.ppp,3)}</td><td>${num(r.efg,1)}%</td>
+      <td>${num(r.fin1,1)}%</td><td>${num(r.fin2,1)}%</td><td>${num(r.fin3,1)}%</td>
+    </tr>`;
+  }).join('');
+};
+/* ===== FIN PROMEDIOS INDIVIDUAL ===== */
+</script>
 </body>
 </html>
